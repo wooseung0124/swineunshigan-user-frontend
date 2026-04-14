@@ -1,7 +1,7 @@
 ## 🚀 개발 환경 셋팅
 
 ### 1. 레포 클론
-git clone https://github.com/[org명]/[repo명].git
+git clone https://github.com/shineunsigan-project/User_Front_end_App.git
 cd [repo명]
 
 ### 2. 브랜치 규칙
