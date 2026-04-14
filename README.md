@@ -1,3 +1,27 @@
+## 🚀 개발 환경 셋팅
+
+### 1. 레포 클론
+git clone https://github.com/[org명]/[repo명].git
+cd [repo명]
+
+### 2. 브랜치 규칙
+- 작업 시작 전 반드시 develop에서 분기
+git checkout develop
+git pull origin develop
+git checkout -b feature/내-기능명
+
+### 3. 작업 완료 후
+git add .
+git commit -m "feat: 기능 설명"
+git push origin feature/내-기능명
+→ GitHub에서 develop으로 PR 생성
+
+### 4. main 직접 push 금지 ❌
+
+
+----
+
+
 # 커뮤니티 사용자 전용 어플 개발(스마트폰 App)
 팀 프로젝트의 프론트엔드 Repository 입니다.
 
