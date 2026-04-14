@@ -2,18 +2,19 @@
 
 ### 1. 레포 클론
 git clone https://github.com/shineunsigan-project/User_Front_end_App.git
-cd [repo명]
+cd
 
 ### 2. 브랜치 규칙
 - 작업 시작 전 반드시 develop에서 분기
-git checkout develop
-git pull origin develop
-git checkout -b feature/내-기능명
+  - git checkout develop
+  - git pull origin develop
+  - git checkout -b feature/내-기능명
 
 ### 3. 작업 완료 후
-git add .
-git commit -m "feat: 기능 설명"
-git push origin feature/내-기능명
+ - git add .
+ - git commit -m "feat: 기능 설명"
+ - git push origin feature/내-기능명
+
 → GitHub에서 develop으로 PR 생성
 
 ### 4. main 직접 push 금지 ❌
