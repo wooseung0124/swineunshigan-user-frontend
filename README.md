@@ -56,6 +56,23 @@ cd User_Front_end_App
 ### 4. main 직접 push 금지 ❌
 ### 5. .env 파일 커밋 금지 🚨
 
+### 6. 디자이너 파일 업로드
+ - GitHub 사이트에서 직접 업로드
+ - 이미지 넣을 폴더 클릭 (예: public/images)
+ - "Add file" → "Upload files" 클릭
+ - 파일 드래그 앤 드롭
+ - 하단 "Commit changes" 클릭
+
+   - 디자이너 주의사항
+
+  
+    | 항목 | 권장 |
+    | --- | --- |
+    | 파일명 | 한글, 공백 금지 → main-banner.png 형태로 |
+    | 파일 | 형식PNG, SVG, WebP 권장 |
+    | 파일 | 크기1MB 이하 권장 (GitHub 제한 100MB) |
+    | 올릴 브랜치 | develop 또는 담당자와 사전 협의 | 
+
 ---
 
 ## 📌 프로젝트 개요
