@@ -51,24 +51,24 @@ export default function SlideUpPanel({ place, onClose }) {
           fontWeight: '700',
           marginBottom: '8px',
         }}>
-          {place.place_name}
+          {place.name}
         </h2>
 
         {/* 카테고리 */}
-        {place.category_group_name && (
+        {place.category && (
           <span style={{
             fontSize: '13px',
             color: '#aaa',
             marginBottom: '12px',
             display: 'block',
           }}>
-            {place.category_group_name}
+            {place.category}
           </span>
         )}
 
         {/* 주소 */}
         <p style={{ fontSize: '14px', color: '#ccc', marginBottom: '6px' }}>
-          📍 {place.road_address_name || place.address_name}
+          📍 {place.address}
         </p>
 
         {/* 전화번호 */}
@@ -95,6 +95,13 @@ export default function SlideUpPanel({ place, onClose }) {
           </button>
           <button
             onClick={() => {
+              const token = localStorage.getItem('token');
+              if (!token) {
+                if (confirm('로그인이 필요합니다. 로그인 하시겠습니까?')) {
+                  navigate('/');
+                }
+                return;
+              }
               onClose();
               navigate('/create-room', { state: { place } });
             }}

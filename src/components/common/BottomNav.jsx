@@ -21,21 +21,30 @@ export default function BottomNav() {
     }}>
       {tabs.map(tab => (
         <button
-          key={tab.path}
-          onClick={() => navigate(tab.path)}
-          style={{
-            flex: 1,
-            padding: '12px 0',
-            border: 'none',
-            background: 'none',
-            fontSize: '12px',
-            fontWeight: pathname === tab.path ? '700' : '400',
-            color: pathname === tab.path ? '#FEE500' : '#888',
-            cursor: 'pointer',
-          }}
-        >
-          {tab.label}
-        </button>
+        key={tab.path}
+        onClick={() => {
+          const token = localStorage.getItem('token');
+          if (!token && (tab.path === '/schedule' || tab.path === '/mypage')) {
+            if (confirm('로그인이 필요합니다. 로그인 하시겠습니까?')) {
+              navigate('/');
+            }
+            return;
+          }
+          navigate(tab.path);
+        }}
+        style={{
+          flex: 1,
+          padding: '12px 0',
+          border: 'none',
+          background: 'none',
+          fontSize: '12px',
+          fontWeight: pathname === tab.path ? '700' : '400',
+          color: pathname === tab.path ? '#FEE500' : '#888',
+          cursor: 'pointer',
+        }}
+      >
+        {tab.label}
+      </button>
       ))}
     </nav>
   );
