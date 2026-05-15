@@ -1,72 +1,91 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SCHEDULE_CATEGORY_LABEL, SCHEDULE_STATUS_LABEL } from '../types/types';
 
-// 임시 더미 데이터
+// 임시 더미 데이터 (ERD: schedules + 조인된 place + participants 계산값)
+// 백엔드 API 붙기 전까지 사용. ERD camelCase 변환 기준.
+// - dateTime: ISO 문자열
+// - category/status: ERD enum (영문)
+// - myRole: 백엔드 응답에 포함될 것으로 예상되는 클라이언트 편의 필드
 const DUMMY_SCHEDULES = [
   {
     id: 1,
+    placeId: 1,
     title: '성수동 스터디 모임',
-    placeName: '맞스터치 성수역점',
-    address: '서울 성동구 성수동2가',
-    date: '2026-04-28',
-    time: '14:00',
-    category: '스터디',
+    description: '',
+    category: 'STUDY',
+    dateTime: '2026-04-28T14:00:00',
+    genderCondition: 'ANY',
     maxParticipants: 4,
+    status: 'PENDING',
+    canceledAt: null,
+    place: { id: 1, name: '맞스터치 성수역점', address: '서울 성동구 성수동2가' },
     currentParticipants: 2,
-    status: 'waiting',
-    role: 'owner',
+    myRole: 'CREATOR',
   },
   {
     id: 2,
+    placeId: 2,
     title: '점심 같이 먹어요',
-    placeName: '서울숲 카페',
-    address: '서울 성동구 서울숲길',
-    date: '2026-04-29',
-    time: '12:00',
-    category: '식사',
+    description: '',
+    category: 'MEAL',
+    dateTime: '2026-04-29T12:00:00',
+    genderCondition: 'ANY',
     maxParticipants: 3,
+    status: 'PENDING',
+    canceledAt: null,
+    place: { id: 2, name: '서울숲 카페', address: '서울 성동구 서울숲길' },
     currentParticipants: 3,
-    status: 'waiting',
-    role: 'participant',
+    myRole: 'PARTICIPANT',
   },
   {
     id: 3,
+    placeId: 3,
     title: '독서 모임',
-    placeName: '성수 북카페',
-    address: '서울 성동구 연무장길',
-    date: '2026-04-25',
-    time: '10:00',
-    category: '문화활동',
+    description: '',
+    category: 'CULTURAL',
+    dateTime: '2026-04-25T10:00:00',
+    genderCondition: 'ANY',
     maxParticipants: 4,
+    status: 'COMPLETED',
+    canceledAt: null,
+    place: { id: 3, name: '성수 북카페', address: '서울 성동구 연무장길' },
     currentParticipants: 4,
-    status: 'completed',
-    role: 'participant',
+    myRole: 'PARTICIPANT',
   },
   {
     id: 4,
+    placeId: 5,
     title: '운동 같이 해요',
-    placeName: '성수 체육관',
-    address: '서울 성동구 성수일로',
-    date: '2026-04-24',
-    time: '09:00',
-    category: '스포츠',
+    description: '',
+    category: 'EXERCISE',
+    dateTime: '2026-04-24T09:00:00',
+    genderCondition: 'ANY',
     maxParticipants: 4,
+    status: 'CANCELED',
+    canceledAt: '2026-04-23T10:00:00',
+    place: { id: 5, name: '성수 체육관', address: '서울 성동구 성수일로' },
     currentParticipants: 2,
-    status: 'cancelled',
-    role: 'owner',
+    myRole: 'CREATOR',
   },
 ];
 
-const STATUS_MAP = {
-  waiting: '대기중',
-  completed: '완료됨',
-  cancelled: '취소됨',
+const STATUS_COLOR = {
+  PENDING: '#FEE500',
+  IN_PROGRESS: '#2196F3',
+  COMPLETED: '#4CAF50',
+  CANCELED: '#ff3b30',
 };
 
-const STATUS_COLOR = {
-  waiting: '#FEE500',
-  completed: '#4CAF50',
-  cancelled: '#ff3b30',
+// YYYY-MM-DD HH:mm 형식으로 포맷
+const formatDateTime = (iso) => {
+  const d = new Date(iso);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
 };
 
 export default function SchedulePage() {
@@ -87,15 +106,15 @@ export default function SchedulePage() {
   });
 
   let filtered = DUMMY_SCHEDULES.filter(s => {
-    if (typeFilter === 'owner' && s.role !== 'owner') return false;
-    if (typeFilter === 'participant' && s.role !== 'participant') return false;
+    if (typeFilter === 'owner' && s.myRole !== 'CREATOR') return false;
+    if (typeFilter === 'participant' && s.myRole !== 'PARTICIPANT') return false;
     if (statusFilter !== 'all' && s.status !== statusFilter) return false;
     return true;
   });
 
   filtered.sort((a, b) => {
-    const dateA = new Date(`${a.date} ${a.time}`);
-    const dateB = new Date(`${b.date} ${b.time}`);
+    const dateA = new Date(a.dateTime);
+    const dateB = new Date(b.dateTime);
     return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
   });
 
@@ -127,9 +146,9 @@ export default function SchedulePage() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '13px', color: '#666', minWidth: '40px' }}>현황</span>
           <button onClick={() => setStatusFilter('all')} style={chipStyle(statusFilter === 'all')}>전체</button>
-          <button onClick={() => setStatusFilter('waiting')} style={chipStyle(statusFilter === 'waiting')}>대기중</button>
-          <button onClick={() => setStatusFilter('completed')} style={chipStyle(statusFilter === 'completed')}>완료</button>
-          <button onClick={() => setStatusFilter('cancelled')} style={chipStyle(statusFilter === 'cancelled')}>취소</button>
+          <button onClick={() => setStatusFilter('PENDING')} style={chipStyle(statusFilter === 'PENDING')}>모집중</button>
+          <button onClick={() => setStatusFilter('COMPLETED')} style={chipStyle(statusFilter === 'COMPLETED')}>완료</button>
+          <button onClick={() => setStatusFilter('CANCELED')} style={chipStyle(statusFilter === 'CANCELED')}>취소</button>
         </div>
       </div>
 
@@ -162,7 +181,7 @@ export default function SchedulePage() {
               onMouseOver={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
               onMouseOut={e => e.currentTarget.style.boxShadow = 'none'}
             >
-              {schedule.status === 'cancelled' && (
+              {schedule.status === 'CANCELED' && (
                 <div style={{
                   background: '#ff3b3020',
                   padding: '8px 12px',
@@ -184,10 +203,10 @@ export default function SchedulePage() {
                   color: STATUS_COLOR[schedule.status],
                   fontWeight: '600',
                 }}>
-                  {STATUS_MAP[schedule.status]}
+                  {SCHEDULE_STATUS_LABEL[schedule.status]}
                 </span>
                 <span style={{ fontSize: '12px', color: '#888' }}>
-                  {schedule.role === 'owner' ? '개설자' : '참여자'}
+                  {schedule.myRole === 'CREATOR' ? '개설자' : '참여자'}
                 </span>
               </div>
 
@@ -195,10 +214,10 @@ export default function SchedulePage() {
                 {schedule.title}
               </h3>
               <p style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
-                📍 {schedule.placeName}
+                📍 {schedule.place?.name}
               </p>
               <p style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
-                📅 {schedule.date} {schedule.time}
+                📅 {formatDateTime(schedule.dateTime)}
               </p>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
@@ -209,7 +228,7 @@ export default function SchedulePage() {
                   background: '#f5f5f5',
                   color: '#666',
                 }}>
-                  {schedule.category}
+                  {SCHEDULE_CATEGORY_LABEL[schedule.category]}
                 </span>
                 <span style={{ fontSize: '13px', color: '#888' }}>
                   👥 {schedule.currentParticipants}/{schedule.maxParticipants}명

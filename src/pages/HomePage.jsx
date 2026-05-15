@@ -3,6 +3,7 @@ import SlideUpPanel from '../components/common/SlideUpPanel';
 import FilterBar from '../components/common/FilterBar';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 
 const containerStyle = {
   width: '100%',
@@ -14,13 +15,80 @@ const SEONGSU_CENTER = {
   lng: 127.0557,
 };
 
-// 임시 더미 장소 데이터
+// 임시 더미 장소 데이터 (ERD: places + place_category + place_images + opening_hours)
+// 백엔드 API 붙기 전까지 사용. 응답 구조는 ERD camelCase 변환 기준.
 const DUMMY_PLACES = [
-  { id: 1, name: '맞스터치 성수역점', category: '음식점', isOpen: true, address: '서울 성동구 성수동2가 289-10', phone: '02-1234-5678', latitude: 37.5445, longitude: 127.0560 },
-  { id: 2, name: '서울숲 카페', category: '카페', isOpen: true, address: '서울 성동구 서울숲길 17', phone: '02-9876-5432', latitude: 37.5465, longitude: 127.0580 },
-  { id: 3, name: '성수 북카페', category: '카페', isOpen: false, address: '서울 성동구 연무장길 15', latitude: 37.5430, longitude: 127.0540 },
-  { id: 4, name: '성수 미술관', category: '문화시설', isOpen: true, address: '서울 성동구 성수일로 56', phone: '02-3333-4444', latitude: 37.5455, longitude: 127.0570 },
-  { id: 5, name: '서울숲 공원', category: '레포츠', isOpen: true, address: '서울 성동구 뚝섬로 273', latitude: 37.5440, longitude: 127.0590 },
+  {
+    id: 1,
+    categoryId: 1,
+    name: '맞스터치 성수역점',
+    address: '서울 성동구 성수동2가 289-10',
+    snsLink: null,
+    contact: '02-1234-5678',
+    latitude: 37.5445,
+    longitude: 127.0560,
+    // 조인 응답 (백엔드 응답 상정)
+    category: { id: 1, name: '음식점' },
+    images: [],
+    openingHours: [],
+    isOpenNow: true,
+  },
+  {
+    id: 2,
+    categoryId: 2,
+    name: '서울숲 카페',
+    address: '서울 성동구 서울숲길 17',
+    snsLink: null,
+    contact: '02-9876-5432',
+    latitude: 37.5465,
+    longitude: 127.0580,
+    category: { id: 2, name: '카페' },
+    images: [],
+    openingHours: [],
+    isOpenNow: true,
+  },
+  {
+    id: 3,
+    categoryId: 2,
+    name: '성수 북카페',
+    address: '서울 성동구 연무장길 15',
+    snsLink: null,
+    contact: null,
+    latitude: 37.5430,
+    longitude: 127.0540,
+    category: { id: 2, name: '카페' },
+    images: [],
+    openingHours: [],
+    isOpenNow: false,
+  },
+  {
+    id: 4,
+    categoryId: 3,
+    name: '성수 미술관',
+    address: '서울 성동구 성수일로 56',
+    snsLink: null,
+    contact: '02-3333-4444',
+    latitude: 37.5455,
+    longitude: 127.0570,
+    category: { id: 3, name: '문화시설' },
+    images: [],
+    openingHours: [],
+    isOpenNow: true,
+  },
+  {
+    id: 5,
+    categoryId: 4,
+    name: '서울숲 공원',
+    address: '서울 성동구 뚝섬로 273',
+    snsLink: null,
+    contact: null,
+    latitude: 37.5440,
+    longitude: 127.0590,
+    category: { id: 4, name: '레포츠' },
+    images: [],
+    openingHours: [],
+    isOpenNow: true,
+  },
 ];
 
 export default function HomePage() {
@@ -32,8 +100,7 @@ export default function HomePage() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [filter, setFilter] = useState('전체');
-  const userStr = localStorage.getItem('user');
-  const user = userStr && userStr !== 'undefined' ? JSON.parse(userStr) : null;
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
   const navigate = useNavigate();
   const [hoveredPlace, setHoveredPlace] = useState(null);
 
@@ -48,8 +115,8 @@ export default function HomePage() {
   // 필터링 로직
   const filteredPlaces = DUMMY_PLACES.filter(place => {
     if (filter === '전체') return true;
-    if (filter === '영업중') return place.isOpen;
-    return place.category === filter;
+    if (filter === '영업중') return place.isOpenNow;
+    return place.category?.name === filter;
   });
 
   // 검색 (더미 데이터에서 이름으로 검색)
@@ -108,8 +175,7 @@ export default function HomePage() {
 
         <button
           onClick={() => {
-            const token = localStorage.getItem('token');
-            if (!token) {
+            if (!isAuthenticated) {
               if (confirm('로그인이 필요합니다. 로그인 하시겠습니까?')) {
                 navigate('/');
               }

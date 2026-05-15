@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore, selectIsAuthenticated } from '../../store/authStore';
 
 export default function SlideUpPanel({ place, onClose }) {
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
   if (!place) return null;
 
   return (
@@ -55,14 +57,14 @@ export default function SlideUpPanel({ place, onClose }) {
         </h2>
 
         {/* 카테고리 */}
-        {place.category && (
+        {place.category?.name && (
           <span style={{
             fontSize: '13px',
             color: '#aaa',
             marginBottom: '12px',
             display: 'block',
           }}>
-            {place.category}
+            {place.category.name}
           </span>
         )}
 
@@ -71,10 +73,10 @@ export default function SlideUpPanel({ place, onClose }) {
           📍 {place.address}
         </p>
 
-        {/* 전화번호 */}
-        {place.phone && (
+        {/* 연락처 */}
+        {place.contact && (
           <p style={{ fontSize: '14px', color: '#ccc', marginBottom: '16px' }}>
-            📞 {place.phone}
+            📞 {place.contact}
           </p>
         )}
 
@@ -95,8 +97,7 @@ export default function SlideUpPanel({ place, onClose }) {
           </button>
           <button
             onClick={() => {
-              const token = localStorage.getItem('token');
-              if (!token) {
+              if (!isAuthenticated) {
                 if (confirm('로그인이 필요합니다. 로그인 하시겠습니까?')) {
                   navigate('/');
                 }

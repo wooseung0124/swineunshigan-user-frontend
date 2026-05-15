@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
 const DUMMY_USER = {
   name: '김진우',
@@ -13,11 +14,12 @@ const DUMMY_USER = {
 
 export default function MyPage() {
   const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
   const user = DUMMY_USER;
 
   const handleLogout = () => {
     if (confirm('정말 로그아웃 하시겠습니까?')) {
-      localStorage.removeItem('token');
+      logout();
       navigate('/');
     }
   };

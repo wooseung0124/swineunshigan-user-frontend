@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuthStore, selectIsAuthenticated } from '../../store/authStore';
 
 const tabs = [
   { label: '홈화면', path: '/home' },
@@ -10,6 +11,7 @@ const tabs = [
 export default function BottomNav() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
 
   return (
     <nav style={{
@@ -23,8 +25,7 @@ export default function BottomNav() {
         <button
         key={tab.path}
         onClick={() => {
-          const token = localStorage.getItem('token');
-          if (!token && (tab.path === '/schedule' || tab.path === '/mypage')) {
+          if (!isAuthenticated && (tab.path === '/schedule' || tab.path === '/mypage')) {
             if (confirm('로그인이 필요합니다. 로그인 하시겠습니까?')) {
               navigate('/');
             }

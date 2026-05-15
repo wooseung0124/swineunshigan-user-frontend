@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import NaverLoginButton from '../components/auth/NaverLoginButton';
 import KakaoLoginButton from '../components/auth/KakaoLoginButton';
+import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function LoginPage() {
       <p style={{ color: '#888', fontSize: '14px', marginBottom: '12px' }}>짧지만 의미있게</p>
       <KakaoLoginButton />
       <NaverLoginButton />
+      <GoogleLoginButton />
       <button
         onClick={() => navigate('/home')}
         style={{

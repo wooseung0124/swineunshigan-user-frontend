@@ -1,35 +1,76 @@
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { SCHEDULE_CATEGORY_LABEL, SCHEDULE_STATUS_LABEL } from '../types/types';
 
+// 임시 더미 데이터 (ERD: schedules + place + participants + user + user_profile)
+// 백엔드 API 붙기 전까지 사용. ERD camelCase 변환 기준.
+// - description: 활동 계획 (기존 activityPlan)
+// - participants[].user / participants[].profile: 조인된 응답
+// - myRole: 백엔드 응답에 포함될 것으로 예상되는 클라이언트 편의 필드
 const DUMMY_DETAIL = {
   id: 1,
+  placeId: 1,
   title: '성수동 스터디 모임',
-  placeName: '맞스터치 성수역점',
-  address: '서울 성동구 성수동2가 289-10',
-  phone: '02-1234-5678',
-  date: '2026-04-28',
-  time: '14:00',
-  category: '스터디',
-  activityPlan: '각자 공부할 자료를 가져와서 조용히 작업하는 모임입니다. 중간에 짧은 휴식 시간도 있어요.',
+  description: '각자 공부할 자료를 가져와서 조용히 작업하는 모임입니다. 중간에 짧은 휴식 시간도 있어요.',
+  category: 'STUDY',
+  dateTime: '2026-04-28T14:00:00',
+  genderCondition: 'ANY',
   maxParticipants: 4,
-  currentParticipants: 2,
-  status: 'waiting',
-  role: 'owner',
+  status: 'PENDING',
+  canceledAt: null,
+  place: {
+    id: 1,
+    categoryId: 1,
+    name: '맞스터치 성수역점',
+    address: '서울 성동구 성수동2가 289-10',
+    snsLink: null,
+    contact: '02-1234-5678',
+    latitude: 37.5445,
+    longitude: 127.0560,
+    category: { id: 1, name: '음식점' },
+    images: [],
+  },
   participants: [
-    { id: 1, name: '김진우', mbti: 'INFP', isOwner: true },
-    { id: 2, name: '이수민', mbti: 'ENFJ', isOwner: false },
+    {
+      id: 1,
+      scheduleId: 1,
+      userId: 101,
+      role: 'CREATOR',
+      status: 'ACTIVE',
+      canceledAt: null,
+      user: { id: 101, name: '김진우', gender: 'MALE', status: 'ACTIVE' },
+      profile: { mbti: 'INFP', introduction: '', profileImageUrl: null },
+    },
+    {
+      id: 2,
+      scheduleId: 1,
+      userId: 102,
+      role: 'PARTICIPANT',
+      status: 'ACTIVE',
+      canceledAt: null,
+      user: { id: 102, name: '이수민', gender: 'FEMALE', status: 'ACTIVE' },
+      profile: { mbti: 'ENFJ', introduction: '', profileImageUrl: null },
+    },
   ],
-};
-
-const STATUS_MAP = {
-  waiting: '대기중',
-  completed: '완료됨',
-  cancelled: '취소됨',
+  currentParticipants: 2,
+  myRole: 'CREATOR',
 };
 
 const STATUS_COLOR = {
-  waiting: '#FEE500',
-  completed: '#4CAF50',
-  cancelled: '#ff3b30',
+  PENDING: '#FEE500',
+  IN_PROGRESS: '#2196F3',
+  COMPLETED: '#4CAF50',
+  CANCELED: '#ff3b30',
+};
+
+// YYYY-MM-DD HH:mm 형식으로 포맷
+const formatDateTime = (iso) => {
+  const d = new Date(iso);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
 };
 
 export default function ScheduleDetailPage() {
@@ -38,8 +79,9 @@ export default function ScheduleDetailPage() {
   const { id } = useParams();
 
   const schedule = location.state?.schedule || DUMMY_DETAIL;
-  const isOwner = schedule.role === 'owner';
-  const isCancelled = schedule.status === 'cancelled';
+  const isOwner = schedule.myRole === 'CREATOR';
+  const isCancelled = schedule.status === 'CANCELED';
+  const creator = schedule.participants?.find(p => p.role === 'CREATOR');
 
   return (
     <div style={{ minHeight: '100vh', background: '#fff' }}>
@@ -80,7 +122,7 @@ export default function ScheduleDetailPage() {
             이 일정은 취소되었습니다
           </div>
           <div style={{ color: '#ff8a85', fontSize: '13px' }}>
-            개설자: {schedule.participants[0].name}
+            개설자: {creator?.user?.name}
           </div>
         </div>
       )}
@@ -110,7 +152,7 @@ export default function ScheduleDetailPage() {
             fontSize: '12px',
             fontWeight: '600',
           }}>
-            {STATUS_MAP[schedule.status]}
+            {SCHEDULE_STATUS_LABEL[schedule.status]}
           </span>
           <span style={{ color: '#666', fontSize: '13px' }}>
             {isOwner ? '👑 개설자' : '참여자'}
@@ -126,17 +168,19 @@ export default function ScheduleDetailPage() {
         <div style={{ marginBottom: '20px' }}>
           <div style={{ color: '#888', fontSize: '13px', marginBottom: '8px' }}>📍 장소</div>
           <div style={{ color: '#000', fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-            {schedule.placeName}
+            {schedule.place?.name}
           </div>
-          <div style={{ color: '#666', fontSize: '13px', marginBottom: '4px' }}>{schedule.address}</div>
-          <div style={{ color: '#666', fontSize: '13px' }}>📞 {schedule.phone}</div>
+          <div style={{ color: '#666', fontSize: '13px', marginBottom: '4px' }}>{schedule.place?.address}</div>
+          {schedule.place?.contact && (
+            <div style={{ color: '#666', fontSize: '13px' }}>📞 {schedule.place.contact}</div>
+          )}
         </div>
 
         {/* 약속 시간 */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ color: '#888', fontSize: '13px', marginBottom: '8px' }}>📅 약속 시간</div>
           <div style={{ color: '#000', fontSize: '16px', fontWeight: '600' }}>
-            {schedule.date} {schedule.time}
+            {formatDateTime(schedule.dateTime)}
           </div>
         </div>
 
@@ -152,7 +196,7 @@ export default function ScheduleDetailPage() {
             fontSize: '13px',
             fontWeight: '600',
           }}>
-            {schedule.category}
+            {SCHEDULE_CATEGORY_LABEL[schedule.category]}
           </span>
         </div>
 
@@ -160,7 +204,7 @@ export default function ScheduleDetailPage() {
         <div style={{ marginBottom: '20px' }}>
           <div style={{ color: '#888', fontSize: '13px', marginBottom: '8px' }}>📝 활동 계획</div>
           <div style={{ color: '#333', fontSize: '14px', lineHeight: '22px' }}>
-            {schedule.activityPlan}
+            {schedule.description}
           </div>
         </div>
 
@@ -200,13 +244,13 @@ export default function ScheduleDetailPage() {
                 fontWeight: '700',
                 color: '#000',
               }}>
-                {p.name[0]}
+                {p.user?.name?.[0]}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ color: '#000', fontSize: '14px', fontWeight: '600' }}>
-                  {p.name} {p.isOwner && '👑'}
+                  {p.user?.name} {p.role === 'CREATOR' && '👑'}
                 </div>
-                <div style={{ color: '#888', fontSize: '12px' }}>{p.mbti}</div>
+                <div style={{ color: '#888', fontSize: '12px' }}>{p.profile?.mbti}</div>
               </div>
               <button style={{
                 background: 'transparent',

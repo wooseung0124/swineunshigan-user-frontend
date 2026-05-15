@@ -45,6 +45,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ code, redirectUri }),
       }),
+    googleLogin: (code, redirectUri) =>
+      request('/api/auth/google/callback', {
+        method: 'POST',
+        body: JSON.stringify({ code, redirectUri }),
+      }),
     me: () => request('/api/auth/me'),
   },
 

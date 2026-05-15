@@ -1,20 +1,32 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import { verifyOAuthState, isMockAuthEnabled, getMockAuthResponse } from '../config/oauth';
 
 export default function NaverCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
 
   useEffect(() => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-    const savedState = sessionStorage.getItem('naver_oauth_state');
 
-    if (state !== savedState) {
+    if (!verifyOAuthState('naver', state)) {
       alert('잘못된 접근입니다.');
       navigate('/');
       return;
     }
+
+    // --- Mock 분기: 백엔드 미연동 시 풀 플로우 테스트용 ---
+    if (isMockAuthEnabled()) {
+      const { token, user } = getMockAuthResponse('naver');
+      console.log('[MOCK AUTH] 네이버 로그인 (mock)', { code, user });
+      login(token, user);
+      navigate('/home');
+      return;
+    }
+    // ----------------------------------------------------
 
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/naver/callback`, {
       method: 'POST',
@@ -23,8 +35,7 @@ export default function NaverCallback() {
     })
       .then(res => res.json())
       .then(({ token, user }) => {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        login(token, user);
         navigate('/home');
       })
       .catch(() => {
