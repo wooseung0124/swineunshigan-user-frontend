@@ -12,6 +12,7 @@ import NotificationsPage from '../pages/NotificationsPage';
 import MyPage from '../pages/MyPage';
 import ProfileEditPage from '../pages/ProfileEditPage';
 import CurationPage from '../pages/CurationPage';
+import ComponentsTestPage from '../pages/ComponentsTestPage';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 
 function PrivateRoute({ children }) {
@@ -40,6 +41,8 @@ export default function Router() {
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
         <Route path="/notifications" element={<PrivateRoute><Layout><NotificationsPage /></Layout></PrivateRoute>} />
         <Route path="/profile-edit" element={<PrivateRoute><Layout><ProfileEditPage /></Layout></PrivateRoute>} />
+        {/* 개발 전용: 공통 컴포넌트 시각 검증 */}
+        <Route path="/components-test" element={<ComponentsTestPage />} />
       </Routes>
     </BrowserRouter>
   );
