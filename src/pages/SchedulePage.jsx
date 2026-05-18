@@ -1,74 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SCHEDULE_CATEGORY_LABEL, SCHEDULE_STATUS_LABEL } from '../types/types';
-
-// 임시 더미 데이터 (ERD: schedules + 조인된 place + participants 계산값)
-// 백엔드 API 붙기 전까지 사용. ERD camelCase 변환 기준.
-// - dateTime: ISO 문자열
-// - category/status: ERD enum (영문)
-// - myRole: 백엔드 응답에 포함될 것으로 예상되는 클라이언트 편의 필드
-const DUMMY_SCHEDULES = [
-  {
-    id: 1,
-    placeId: 1,
-    title: '성수동 스터디 모임',
-    description: '',
-    category: 'STUDY',
-    dateTime: '2026-04-28T14:00:00',
-    genderCondition: 'ANY',
-    maxParticipants: 4,
-    status: 'PENDING',
-    canceledAt: null,
-    place: { id: 1, name: '맞스터치 성수역점', address: '서울 성동구 성수동2가' },
-    currentParticipants: 2,
-    myRole: 'CREATOR',
-  },
-  {
-    id: 2,
-    placeId: 2,
-    title: '점심 같이 먹어요',
-    description: '',
-    category: 'MEAL',
-    dateTime: '2026-04-29T12:00:00',
-    genderCondition: 'ANY',
-    maxParticipants: 3,
-    status: 'PENDING',
-    canceledAt: null,
-    place: { id: 2, name: '서울숲 카페', address: '서울 성동구 서울숲길' },
-    currentParticipants: 3,
-    myRole: 'PARTICIPANT',
-  },
-  {
-    id: 3,
-    placeId: 3,
-    title: '독서 모임',
-    description: '',
-    category: 'CULTURAL',
-    dateTime: '2026-04-25T10:00:00',
-    genderCondition: 'ANY',
-    maxParticipants: 4,
-    status: 'COMPLETED',
-    canceledAt: null,
-    place: { id: 3, name: '성수 북카페', address: '서울 성동구 연무장길' },
-    currentParticipants: 4,
-    myRole: 'PARTICIPANT',
-  },
-  {
-    id: 4,
-    placeId: 5,
-    title: '운동 같이 해요',
-    description: '',
-    category: 'EXERCISE',
-    dateTime: '2026-04-24T09:00:00',
-    genderCondition: 'ANY',
-    maxParticipants: 4,
-    status: 'CANCELED',
-    canceledAt: '2026-04-23T10:00:00',
-    place: { id: 5, name: '성수 체육관', address: '서울 성동구 성수일로' },
-    currentParticipants: 2,
-    myRole: 'CREATOR',
-  },
-];
+import { api } from '../api/api';
 
 const STATUS_COLOR = {
   PENDING: '#FEE500',
@@ -93,6 +26,17 @@ export default function SchedulePage() {
   const [sortOrder, setSortOrder] = useState('asc');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    api.schedules.list()
+      .then(data => { if (alive) setSchedules(data || []); })
+      .catch(err => { console.error('[SchedulePage] list 실패', err); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, []);
 
   const chipStyle = (isActive) => ({
     padding: '6px 14px',
@@ -105,7 +49,7 @@ export default function SchedulePage() {
     cursor: 'pointer',
   });
 
-  let filtered = DUMMY_SCHEDULES.filter(s => {
+  let filtered = schedules.filter(s => {
     if (typeFilter === 'owner' && s.myRole !== 'CREATOR') return false;
     if (typeFilter === 'participant' && s.myRole !== 'PARTICIPANT') return false;
     if (statusFilter !== 'all' && s.status !== statusFilter) return false;
@@ -154,7 +98,16 @@ export default function SchedulePage() {
 
       {/* 일정 리스트 */}
       <div style={{ padding: '0 16px 20px' }}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '40px 0',
+            color: '#666',
+            fontSize: '14px',
+          }}>
+            불러오는 중...
+          </div>
+        ) : filtered.length === 0 ? (
           <div style={{
             textAlign: 'center',
             padding: '40px 0',

@@ -1,4 +1,10 @@
+import { mockDb } from './mockDb';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+// 백엔드 미연동 시 mockDb로 분기. 환경변수 false 또는 제거 시 진짜 fetch 호출.
+// (auth/api 공용 플래그로 사용 중 - 현재 단계에선 어차피 같이 켜고 끔)
+const IS_MOCK = import.meta.env.VITE_USE_MOCK_AUTH === 'true';
 
 let authToken = null;
 export const setAuthToken = (token) => {
@@ -56,16 +62,46 @@ export const api = {
   // 일정
   schedules: {
     create: (data) => request('/api/schedules', { method: 'POST', body: JSON.stringify(data) }),
+
     list: (filters = {}) => {
+      if (IS_MOCK) return mockDb.schedules.list();
       const params = new URLSearchParams(filters).toString();
       return request(`/api/schedules${params ? '?' + params : ''}`);
     },
-    detail: (id) => request(`/api/schedules/${id}`),
-    update: (id, data) => request(`/api/schedules/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    cancel: (id, reason) => request(`/api/schedules/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) }),
+
+    detail: (id) => {
+      if (IS_MOCK) return mockDb.schedules.detail(id);
+      return request(`/api/schedules/${id}`);
+    },
+
+    update: (id, data) => {
+      if (IS_MOCK) return mockDb.schedules.update(id, data);
+      return request(`/api/schedules/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+    },
+
+    cancel: (id, reason) => {
+      if (IS_MOCK) return mockDb.schedules.cancel(id, reason);
+      return request(`/api/schedules/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
+    },
+
     join: (id) => request(`/api/schedules/${id}/join`, { method: 'POST' }),
     leave: (id) => request(`/api/schedules/${id}/leave`, { method: 'DELETE' }),
     upcoming: () => request('/api/schedules/upcoming'),
+
+    // QR 인증 기록 목록
+    verifications: (id) => {
+      if (IS_MOCK) return mockDb.schedules.verifications(id);
+      return request(`/api/schedules/${id}/verifications`);
+    },
+
+    // QR 인증 처리 (개설자가 참여자 QR을 스캔)
+    verifyQR: (id, qrPayload) => {
+      if (IS_MOCK) return mockDb.schedules.verifyQR(id, qrPayload);
+      return request(`/api/schedules/${id}/verify`, {
+        method: 'POST',
+        body: JSON.stringify(qrPayload),
+      });
+    },
   },
 
   // 장소

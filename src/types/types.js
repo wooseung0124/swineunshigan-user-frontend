@@ -250,9 +250,26 @@ export const DAY_OF_WEEK = {
 /**
  * 매칭 인증 기록 (QR 인증)
  * - ERD: 테이블명 미지정 ('Untitled7'), 컬럼 id만 존재
- * - 백엔드 확정 후 필드 추가 필요 (인증 시각, 인증 사진, 위치 등)
+ * - ※ 백엔드 분과 합의 필요. 아래는 프론트 추정 스키마.
+ *
  * @typedef {Object} MatchVerification
  * @property {number} id
+ * @property {number} scheduleId
+ * @property {number} verifierId       - 인증한 사람 (보통 개설자)
+ * @property {number} verifiedUserId   - 인증된 사람 (참여자)
+ * @property {string} verifiedAt       - 인증 시각 (ISO datetime)
+ */
+
+/**
+ * QR 코드 페이로드 (참여자 화면에 표시되는 데이터)
+ * - 개설자가 스캔하면 이 JSON이 디코딩됨
+ * - 백엔드에서는 이 페이로드를 받아 검증 후 MatchVerification 생성
+ *
+ * @typedef {Object} QRPayload
+ * @property {number} scheduleId
+ * @property {number} userId           - QR을 발급한 사람 (참여자)
+ * @property {number} issuedAt         - QR 발급 시각 (Unix ms) - 만료 검증용
+ * @property {string} nonce            - 일회용 토큰 (재사용 방지)
  */
 
 
