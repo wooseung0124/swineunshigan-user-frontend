@@ -13,6 +13,12 @@ import MyPage from '../pages/MyPage';
 import ProfileEditPage from '../pages/ProfileEditPage';
 import CurationPage from '../pages/CurationPage';
 import ComponentsTestPage from '../pages/ComponentsTestPage';
+import PlaceDetailPage from '../pages/PlaceDetailPage';
+import ScheduleEditPage from '../pages/ScheduleEditPage';
+import ScheduleCancelPage from '../pages/ScheduleCancelPage';
+import BookmarkPage from '../pages/BookmarkPage';
+import SettingsPage from '../pages/SettingsPage';
+import WithdrawalPage from '../pages/WithdrawalPage';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 
 function PrivateRoute({ children }) {
@@ -41,6 +47,15 @@ export default function Router() {
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
         <Route path="/notifications" element={<PrivateRoute><Layout><NotificationsPage /></Layout></PrivateRoute>} />
         <Route path="/profile-edit" element={<PrivateRoute><Layout><ProfileEditPage /></Layout></PrivateRoute>} />
+
+        {/* 미구현 골격 (디자인 시안 수령 후 본격 구현) */}
+        <Route path="/place/:id" element={<PlaceDetailPage />} />
+        <Route path="/schedule/:id/edit" element={<PrivateRoute><ScheduleEditPage /></PrivateRoute>} />
+        <Route path="/schedule/:id/cancel" element={<PrivateRoute><ScheduleCancelPage /></PrivateRoute>} />
+        <Route path="/bookmarks" element={<PrivateRoute><BookmarkPage /></PrivateRoute>} />
+        <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+        <Route path="/withdrawal" element={<PrivateRoute><WithdrawalPage /></PrivateRoute>} />
+
         {/* 개발 전용: 공통 컴포넌트 시각 검증 */}
         <Route path="/components-test" element={<ComponentsTestPage />} />
       </Routes>
