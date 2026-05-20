@@ -86,6 +86,23 @@ export default function ScheduleDetailPage() {
     return () => clearInterval(timer);
   }, [schedule]);
 
+  // ★ 여기에 추가 ★
+  const handleScanSuccess = useCallback(async (payload) => {
+    setScannerOpen(false);
+    setVerifyMessage(null);
+    try {
+      const result = await api.schedules.verifyQR(id, payload);
+      const name = result?.participant?.user?.name || '참여자';
+      setVerifyMessage({ type: 'success', text: `${name}님 인증 완료` });
+      // 인증 목록 갱신
+      const fresh = await api.schedules.verifications(id);
+      setVerifications(fresh || []);
+    } catch (err) {
+      setVerifyMessage({ type: 'error', text: err.message || '인증 실패' });
+    }
+  }, [id]);
+  // ★ 추가 끝 ★
+
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
@@ -126,21 +143,7 @@ export default function ScheduleDetailPage() {
   const meVerified = verifications.some(v => v.verifiedUserId === myUserId);
 
   // QR 스캔 성공 핸들러 (CREATOR용)
-  const handleScanSuccess = useCallback(async (payload) => {
-    setScannerOpen(false);
-    setVerifyMessage(null);
-    try {
-      const result = await api.schedules.verifyQR(id, payload);
-      const name = result?.participant?.user?.name || '참여자';
-      setVerifyMessage({ type: 'success', text: `${name}님 인증 완료` });
-      // 인증 목록 갱신
-      const fresh = await api.schedules.verifications(id);
-      setVerifications(fresh || []);
-    } catch (err) {
-      setVerifyMessage({ type: 'error', text: err.message || '인증 실패' });
-    }
-  }, [id]);
-
+ 
   return (
     <div style={{ minHeight: '100vh', background: '#fff' }}>
       {/* 헤더 */}
