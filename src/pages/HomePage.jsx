@@ -98,8 +98,9 @@ export default function HomePage() {
 
   const [map, setMap] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [selectedPlace, setSelectedPlace] = useState(null);
-  const [filter, setFilter] = useState('전체');
+  const [selectedPlace, setSelectedPlace] = useState(null);   // 인포윈도우용
+const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패널용
+  const [filter, setFilter] = useState(null);
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   const navigate = useNavigate();
   const [hoveredPlace, setHoveredPlace] = useState(null);
@@ -113,11 +114,9 @@ export default function HomePage() {
   }, []);
 
   // 필터링 로직
-  const filteredPlaces = DUMMY_PLACES.filter(place => {
-    if (filter === '전체') return true;
-    if (filter === '영업중') return place.isOpenNow;
-    return place.category?.name === filter;
-  });
+  const filteredPlaces = filter
+  ? DUMMY_PLACES.filter(place => place.category?.name === filter)
+  : [];  // 필터 안 누르면 핑 없음
 
   // 검색 (더미 데이터에서 이름으로 검색)
   const handleSearch = () => {
@@ -236,20 +235,33 @@ export default function HomePage() {
           />
         ))}
 
-        {hoveredPlace && (
-          <InfoWindow
-            position={{ lat: hoveredPlace.latitude, lng: hoveredPlace.longitude }}
-            onCloseClick={() => setHoveredPlace(null)}
-            options={{
-              pixelOffset: new window.google.maps.Size(0, -40),
-              disableAutoPan: true,
-            }}
-          >
-            <div style={{ padding: '4px 8px', fontSize: '13px', fontWeight: '600' }}>
-              {hoveredPlace.name}
-            </div>
-          </InfoWindow>
-        )}
+{selectedPlace && (
+  <InfoWindow
+    position={{ lat: selectedPlace.latitude, lng: selectedPlace.longitude }}
+    onCloseClick={() => setSelectedPlace(null)}
+    options={{
+      pixelOffset: new window.google.maps.Size(0, -40),
+    }}
+  >
+    <div
+  onClick={() => {
+    setDetailPlace(selectedPlace);   // 슬라이드 패널 열기
+    setSelectedPlace(null);          // 인포윈도우 닫기
+  }}
+  style={{ padding: '8px 4px', cursor: 'pointer', minWidth: '180px' }}
+>
+      <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px' }}>
+        {selectedPlace.category?.name}
+      </div>
+      <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px', color: '#000' }}>
+        {selectedPlace.name}
+      </div>
+      <div style={{ fontSize: '12px', color: '#666' }}>
+        {selectedPlace.address}
+      </div>
+    </div>
+  </InfoWindow>
+)}
         </GoogleMap>
 
         <button
@@ -288,9 +300,9 @@ export default function HomePage() {
       </div>
 
       <SlideUpPanel
-        place={selectedPlace}
-        onClose={() => setSelectedPlace(null)}
-      />
+  place={detailPlace}
+  onClose={() => setDetailPlace(null)}  
+/>
     </div>
   );
 }
