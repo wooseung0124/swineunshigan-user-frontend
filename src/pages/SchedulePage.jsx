@@ -23,9 +23,8 @@ const formatDateTime = (iso) => {
 
 export default function SchedulePage() {
   const navigate = useNavigate();
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [roleTab, setRoleTab] = useState('CREATOR');   // 개설자(CREATOR) / 참여자(PARTICIPANT)
+  const [statusFilter, setStatusFilter] = useState('all');  // all / PENDING / CANCELED
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,82 +37,67 @@ export default function SchedulePage() {
     return () => { alive = false; };
   }, []);
 
-  const chipStyle = (isActive) => ({
-    padding: '6px 14px',
-    borderRadius: '20px',
-    border: isActive ? '2px solid #A8DC4F' : '1px solid #ddd',
-    background: isActive ? '#A8DC4F20' : '#fff',
-    color: isActive ? '#5DA80E' : '#666',
-    fontSize: '12px',
+  // 큰 탭 (개설자 / 참여자) 스타일
+  const tabStyle = (isActive) => ({
+    flex: 1,
+    padding: '12px 0',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: isActive ? '2px solid #000' : '2px solid transparent',
+    color: isActive ? '#000' : '#999',
+    fontSize: '15px',
     fontWeight: isActive ? '700' : '400',
     cursor: 'pointer',
   });
 
-  let filtered = schedules.filter(s => {
-    if (typeFilter === 'owner' && s.myRole !== 'CREATOR') return false;
-    if (typeFilter === 'participant' && s.myRole !== 'PARTICIPANT') return false;
-    if (statusFilter !== 'all' && s.status !== statusFilter) return false;
-    return true;
+  // 현황 칩 필터 스타일
+  const chipStyle = (isActive) => ({
+    padding: '6px 16px',
+    borderRadius: '20px',
+    border: isActive ? '2px solid #A8DC4F' : '1px solid #ddd',
+    background: isActive ? '#A8DC4F20' : '#fff',
+    color: isActive ? '#5DA80E' : '#666',
+    fontSize: '13px',
+    fontWeight: isActive ? '700' : '400',
+    cursor: 'pointer',
   });
 
-  filtered.sort((a, b) => {
-    const dateA = new Date(a.dateTime);
-    const dateB = new Date(b.dateTime);
-    return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+  // 필터링: role 탭 + 현황 필터
+  const filtered = schedules.filter(s => {
+    if (s.myRole !== roleTab) return false;
+    if (s.status === 'COMPLETED') return false;
+    if (statusFilter !== 'all' && s.status !== statusFilter) return false;
+    return true;
   });
 
   return (
     <div style={{ minHeight: '100%', background: '#fff' }}>
       {/* 헤더 */}
-      <div style={{
-        padding: '16px',
-        borderBottom: '1px solid #eee',
-      }}>
-        <h1 style={{ fontSize: '18px', fontWeight: '700', color: '#000' }}>일정 현황</h1>
+      <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
+        <h1 style={{ fontSize: '18px', fontWeight: '700', color: '#000', textAlign: 'center' }}>일정</h1>
       </div>
 
-      {/* 필터 영역 */}
-      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '13px', color: '#666', minWidth: '40px' }}>정렬</span>
-          <button onClick={() => setSortOrder('asc')} style={chipStyle(sortOrder === 'asc')}>오름차순</button>
-          <button onClick={() => setSortOrder('desc')} style={chipStyle(sortOrder === 'desc')}>내림차순</button>
-        </div>
+      {/* 상단 큰 탭: 개설자 / 참여자 */}
+      <div style={{ display: 'flex', borderBottom: '1px solid #eee' }}>
+        <button onClick={() => setRoleTab('CREATOR')} style={tabStyle(roleTab === 'CREATOR')}>개설자</button>
+        <button onClick={() => setRoleTab('PARTICIPANT')} style={tabStyle(roleTab === 'PARTICIPANT')}>참여자</button>
+      </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '13px', color: '#666', minWidth: '40px' }}>종류</span>
-          <button onClick={() => setTypeFilter('all')} style={chipStyle(typeFilter === 'all')}>전체</button>
-          <button onClick={() => setTypeFilter('owner')} style={chipStyle(typeFilter === 'owner')}>개설</button>
-          <button onClick={() => setTypeFilter('participant')} style={chipStyle(typeFilter === 'participant')}>참여</button>
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '13px', color: '#666', minWidth: '40px' }}>현황</span>
-          <button onClick={() => setStatusFilter('all')} style={chipStyle(statusFilter === 'all')}>전체</button>
-          <button onClick={() => setStatusFilter('PENDING')} style={chipStyle(statusFilter === 'PENDING')}>모집중</button>
-          <button onClick={() => setStatusFilter('COMPLETED')} style={chipStyle(statusFilter === 'COMPLETED')}>완료</button>
-          <button onClick={() => setStatusFilter('CANCELED')} style={chipStyle(statusFilter === 'CANCELED')}>취소</button>
-        </div>
+      {/* 현황 필터: 전체 / 모집중 / 취소됨 */}
+      <div style={{ padding: '12px 16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <button onClick={() => setStatusFilter('all')} style={chipStyle(statusFilter === 'all')}>전체</button>
+        <button onClick={() => setStatusFilter('PENDING')} style={chipStyle(statusFilter === 'PENDING')}>모집중</button>
+        <button onClick={() => setStatusFilter('CANCELED')} style={chipStyle(statusFilter === 'CANCELED')}>취소됨</button>
       </div>
 
       {/* 일정 리스트 */}
       <div style={{ padding: '0 16px 20px' }}>
         {loading ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '40px 0',
-            color: '#666',
-            fontSize: '14px',
-          }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#666', fontSize: '14px' }}>
             불러오는 중...
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: '40px 0',
-            color: '#666',
-            fontSize: '14px',
-          }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#666', fontSize: '14px' }}>
             일정이 없습니다.
           </div>
         ) : (
@@ -128,7 +112,7 @@ export default function SchedulePage() {
                 borderRadius: '12px',
                 marginBottom: '12px',
                 cursor: 'pointer',
-                opacity: schedule.status === 'cancelled' ? 0.6 : 1,
+                opacity: schedule.status === 'CANCELED' ? 0.6 : 1,
                 transition: 'all 0.2s',
               }}
               onMouseOver={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
@@ -157,9 +141,6 @@ export default function SchedulePage() {
                   fontWeight: '600',
                 }}>
                   {SCHEDULE_STATUS_LABEL[schedule.status]}
-                </span>
-                <span style={{ fontSize: '12px', color: '#888' }}>
-                  {schedule.myRole === 'CREATOR' ? '개설자' : '참여자'}
                 </span>
               </div>
 
