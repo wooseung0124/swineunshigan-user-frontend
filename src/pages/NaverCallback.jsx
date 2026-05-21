@@ -11,12 +11,28 @@ export default function NaverCallback() {
   useEffect(() => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-
+    const error = searchParams.get('error');  // ← 추가
+  
+    // OAuth 취소/실패 처리
+    if (error) {
+      console.log('[OAuth] 네이버 로그인 취소/실패:', error);
+      navigate('/login');
+      return;
+    }
+  
+    // code 누락 처리 (취소 시 code 없이 오는 경우)
+    if (!code) {
+      navigate('/login');
+      return;
+    }
+  
     if (!verifyOAuthState('naver', state)) {
       alert('잘못된 접근입니다.');
       navigate('/');
       return;
     }
+  
+    // ... 나머지 그대로
 
     // --- Mock 분기: 백엔드 미연동 시 풀 플로우 테스트용 ---
     if (isMockAuthEnabled()) {
