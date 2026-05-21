@@ -40,7 +40,7 @@ export default function Router() {
         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/home" element={<Layout><HomePage /></Layout>} />
-        <Route path="/schedule" element={<PrivateRoute><Layout><SchedulePage /></Layout></PrivateRoute>} />
+        <Route path="/schedule" element={<Layout><SchedulePage /></Layout>} />
         <Route path="/schedule/:id" element={<PrivateRoute><Layout><ScheduleDetailPage /></Layout></PrivateRoute>} />
         <Route path="/curation" element={<Layout><CurationPage /></Layout>} />
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
