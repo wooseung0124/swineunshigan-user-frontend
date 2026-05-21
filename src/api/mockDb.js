@@ -362,9 +362,14 @@ export const mockDb = {
   // schedules (기존)
   // ===========================================================
   schedules: {
+    create: (data) => request('/api/schedules', { method: 'POST', body: JSON.stringify(data) }),
     list: () => {
       mockLog('schedules.list');
       return ok(load().schedules);
+    },
+    listByPlace: (placeId) => {
+      mockLog('schedules.listByPlace', placeId);
+      return ok(load().schedules.filter(s => s.placeId === placeId));
     },
 
     detail: (id) => {

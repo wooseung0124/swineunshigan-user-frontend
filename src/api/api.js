@@ -81,6 +81,10 @@ export const api = {
       const params = new URLSearchParams(filters).toString();
       return request(`/api/schedules${params ? '?' + params : ''}`);
     },
+    listByPlace: (placeId) => {
+      if (IS_MOCK) return mockDb.schedules.listByPlace(placeId);
+      return request(`/api/schedules?placeId=${placeId}`);
+    },
 
     detail: (id) => {
       if (IS_MOCK) return mockDb.schedules.detail(id);
