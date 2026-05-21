@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SCHEDULE_CATEGORY_LABEL, SCHEDULE_STATUS_LABEL } from '../types/types';
 import { api } from '../api/api';
+import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
+import LoginRequiredModal from '../components/common/LoginRequiredModal';
+import ScheduleCard from '../components/schedule/ScheduleCard';
 
 const STATUS_COLOR = {
   PENDING: '#FEE500',
@@ -23,7 +26,9 @@ const formatDateTime = (iso) => {
 
 export default function SchedulePage() {
   const navigate = useNavigate();
-  const [roleTab, setRoleTab] = useState('CREATOR');   // 개설자(CREATOR) / 참여자(PARTICIPANT)
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [roleTab, setRoleTab] = useState('CREATOR');
   const [statusFilter, setStatusFilter] = useState('all');  // all / PENDING / CANCELED
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,76 +107,25 @@ export default function SchedulePage() {
           </div>
         ) : (
           filtered.map(schedule => (
-            <div
+            <ScheduleCard
               key={schedule.id}
-              onClick={() => navigate(`/schedule/${schedule.id}`)}
-              style={{
-                padding: '16px',
-                background: '#fff',
-                border: '1px solid #eee',
-                borderRadius: '12px',
-                marginBottom: '12px',
-                cursor: 'pointer',
-                opacity: schedule.status === 'CANCELED' ? 0.6 : 1,
-                transition: 'all 0.2s',
+              schedule={schedule}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setLoginModalOpen(true);
+                  return;
+                }
+                navigate(`/schedule/${schedule.id}`);
               }}
-              onMouseOver={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
-              onMouseOut={e => e.currentTarget.style.boxShadow = 'none'}
-            >
-              {schedule.status === 'CANCELED' && (
-                <div style={{
-                  background: '#ff3b3020',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  marginBottom: '10px',
-                  fontSize: '13px',
-                  color: '#ff3b30',
-                }}>
-                  이 일정은 취소되었습니다.
-                </div>
-              )}
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{
-                  fontSize: '12px',
-                  padding: '4px 10px',
-                  borderRadius: '12px',
-                  background: STATUS_COLOR[schedule.status] + '20',
-                  color: STATUS_COLOR[schedule.status],
-                  fontWeight: '600',
-                }}>
-                  {SCHEDULE_STATUS_LABEL[schedule.status]}
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '6px', color: '#000' }}>
-                {schedule.title}
-              </h3>
-              <p style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
-                📍 {schedule.place?.name}
-              </p>
-              <p style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
-                📅 {formatDateTime(schedule.dateTime)}
-              </p>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-                <span style={{
-                  fontSize: '12px',
-                  padding: '4px 10px',
-                  borderRadius: '12px',
-                  background: '#f5f5f5',
-                  color: '#666',
-                }}>
-                  {SCHEDULE_CATEGORY_LABEL[schedule.category]}
-                </span>
-                <span style={{ fontSize: '13px', color: '#888' }}>
-                  👥 {schedule.currentParticipants}/{schedule.maxParticipants}명
-                </span>
-              </div>
-            </div>
+            />
           ))
         )}
+        </div>
+  
+        <LoginRequiredModal
+          open={loginModalOpen}
+          onClose={() => setLoginModalOpen(false)}
+        />
       </div>
-    </div>
-  );
-}
+    );
+  }
