@@ -104,3 +104,7 @@
   --radius-xl: 1rem;       /* 16px */
   --radius-round: 9999px;
 }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}

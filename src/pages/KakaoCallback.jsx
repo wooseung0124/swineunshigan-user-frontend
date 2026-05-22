@@ -10,6 +10,19 @@ export default function KakaoCallback() {
 
   useEffect(() => {
     const code = searchParams.get('code');
+    const error = searchParams.get('error');
+
+    if (error) {
+      console.log('[OAuth] 카카오 로그인 취소/실패:', error);
+      navigate('/login');
+      return;
+    }
+  
+    // code 누락 처리 (취소 시 code 없이 오는 경우)
+    if (!code) {
+      navigate('/login');
+      return;
+    }
 
     // --- Mock 분기: 백엔드 미연동 시 풀 플로우 테스트용 ---
     if (isMockAuthEnabled()) {

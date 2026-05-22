@@ -1,4 +1,5 @@
 import { buildOAuthUrl } from '../../config/oauth';
+import googleIcon from '../../assets/icons/google.svg';
 
 // 구글 OAuth 버튼
 // ※ Google Cloud Console에 OAuth 클라이언트 등록 후
@@ -14,10 +15,10 @@ export default function GoogleLoginButton() {
       style={{
         width: '100%',
         maxWidth: '360px',
-        height: '48px',
-        background: '#fff',
-        color: '#000',
-        border: '1px solid #ddd',
+        height: '46px',
+        background: '#F2F2F2',
+        color: 'var(--color-text)',
+        border: 'none',
         borderRadius: '12px',
         fontSize: '15px',
         fontWeight: '500',
@@ -26,16 +27,22 @@ export default function GoogleLoginButton() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
+        position: 'relative',
       }}
     >
-      <span style={{
-        fontFamily: 'sans-serif',
-        fontWeight: '700',
-        color: '#4285F4',
-      }}>
-        G
-      </span>
-      구글로 시작하기
+      <img
+        src={googleIcon}
+        alt=""
+        style={{
+          width: '24px',
+          height: '24px',
+          position: 'absolute',
+          left: '20px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+        }}
+      />
+      구글 로그인
     </button>
   );
 }

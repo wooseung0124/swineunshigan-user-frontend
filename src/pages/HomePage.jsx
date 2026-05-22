@@ -4,6 +4,7 @@ import FilterBar from '../components/common/FilterBar';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
+import MapControlButton from '../components/map/MapControlButton';
 
 const containerStyle = {
   width: '100%',
@@ -154,7 +155,7 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
             flex: 1,
             padding: '10px 14px',
             borderRadius: '10px',
-            border: '1px solid #ddd',
+            border: '1px solid var(--color-border)',
             fontSize: '14px',
           }}
         />
@@ -162,6 +163,7 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
           onClick={handleSearch}
           style={{
             padding: '10px 16px',
+            // TODO: 토큰화 보류 - 한솔님 확인 후 처리 (카카오 색 vs 브랜드 색 결정 필요)
             background: '#FEE500',
             border: 'none',
             borderRadius: '10px',
@@ -188,7 +190,7 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
             position: 'absolute',
             top: '0',
             right: '0',
-            background: '#ff3b30',
+            background: 'var(--color-error)',
             color: '#fff',
             fontSize: '11px',
             fontWeight: '700',
@@ -250,13 +252,13 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
   }}
   style={{ padding: '8px 4px', cursor: 'pointer', minWidth: '180px' }}
 >
-      <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px' }}>
+      <div style={{ fontSize: '11px', color: 'var(--color-text-gray)', marginBottom: '4px' }}>
         {selectedPlace.category?.name}
       </div>
-      <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px', color: '#000' }}>
+      <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px', color: 'var(--color-text)' }}>
         {selectedPlace.name}
       </div>
-      <div style={{ fontSize: '12px', color: '#666' }}>
+      <div style={{ fontSize: '12px', color: 'var(--color-text-gray)' }}>
         {selectedPlace.address}
       </div>
     </div>
@@ -264,7 +266,11 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
 )}
         </GoogleMap>
 
-        <button
+        <MapControlButton
+          icon="📍"
+          bottom={20}
+          right={16}
+          ariaLabel="내 위치로 이동"
           onClick={() => {
             if (!map) return;
             if (navigator.geolocation) {
@@ -277,26 +283,7 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
               });
             }
           }}
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            right: '16px',
-            width: '44px',
-            height: '44px',
-            borderRadius: '50%',
-            background: '#fff',
-            border: '1px solid #ddd',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            fontSize: '20px',
-            cursor: 'pointer',
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          📍
-        </button>
+        />
       </div>
 
       <SlideUpPanel

@@ -83,7 +83,7 @@ export const api = {
     },
     listByPlace: (placeId) => {
       if (IS_MOCK) return mockDb.schedules.listByPlace(placeId);
-      return request(`/api/schedules?placeId=${placeId}`);
+      return request(`/api/v1/places/${placeId}/schedules`);  // ← 상훈님 패턴
     },
 
     detail: (id) => {

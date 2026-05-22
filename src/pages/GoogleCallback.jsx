@@ -14,7 +14,21 @@ export default function GoogleCallback() {
   useEffect(() => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
-
+    const error = searchParams.get('error');  // ← 추가
+  
+    // OAuth 취소/실패 처리
+    if (error) {
+      console.log('[OAuth] 구글 로그인 취소/실패:', error);
+      navigate('/login');
+      return;
+    }
+  
+    // code 누락 처리 (취소 시 code 없이 오는 경우)
+    if (!code) {
+      navigate('/login');
+      return;
+    }
+  
     if (!verifyOAuthState('google', state)) {
       alert('잘못된 접근입니다.');
       navigate('/');
