@@ -7,15 +7,7 @@ const STATUS_COLOR = {
   CANCELED: '#ff3b30',
 };
 
-const formatDateTime = (iso) => {
-  const d = new Date(iso);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mi = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
-};
+
 
 export default function ScheduleCard({ schedule, onClick }) {
   return (
@@ -67,7 +59,7 @@ export default function ScheduleCard({ schedule, onClick }) {
         📍 {schedule.place?.name}
       </p>
       <p style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
-        📅 {formatDateTime(schedule.dateTime)}
+        📅 {schedule.scheduledAt}
       </p>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
