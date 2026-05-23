@@ -200,23 +200,26 @@ export const DAY_OF_WEEK = {
  */
 
 /**
- * 일정 (모임)
+ * 일정 (모임) - 백엔드 응답 형식 (5/23 확정)
  * @typedef {Object} Schedule
  * @property {number} id
- * @property {number} placeId
+ * @property {number} creatorId - 일정 생성자의 유저 id
+ * @property {{id: number, name: string, address: string}} place - 장소 요약 (nested)
  * @property {string} title
  * @property {string} description
  * @property {keyof typeof SCHEDULE_CATEGORY} category
- * @property {string} dateTime - ISO datetime
- * @property {keyof typeof GENDER_CONDITION} genderCondition
+ * @property {string} scheduledAt - "yyyy-MM-dd HH:mm"
  * @property {number} maxParticipants
+ * @property {number} currentParticipants
+ * @property {keyof typeof GENDER_CONDITION} genderCondition
  * @property {keyof typeof SCHEDULE_STATUS} status
- * @property {string|null} canceledAt
+ * @property {string|null} canceledAt - status==CANCELED인 경우
+ * @property {string} createdAt
+ * @property {string} updatedAt
  *
- * 조인되어 응답에 포함될 가능성 있는 필드:
- * @property {Place} [place]
- * @property {Participant[]} [participants]
- * @property {number} [currentParticipants] - 계산값
+ * 클라이언트 보조 필드 (mockDb / 진입 경로 결정):
+ * @property {keyof typeof PARTICIPANT_ROLE} [myRole] - 현재 사용자 입장에서의 역할
+ * @property {Participant[]} [participants] - 별도 API로 조회
  */
 
 /**
