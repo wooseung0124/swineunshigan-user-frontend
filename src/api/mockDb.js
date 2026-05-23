@@ -32,6 +32,12 @@ function generateSeed() {
   const HOUR = 60 * MIN;
   const DAY = 24 * HOUR;
   const iso = (offset) => new Date(now + offset).toISOString();
+  // 백엔드 scheduledAt 형식: "yyyy-MM-dd HH:mm"
+  const scheduledAtFmt = (offset) => {
+    const d = new Date(now + offset);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
 
   // ----- Places (HomePage DUMMY_PLACES와 동일 구조) -----
   const places = [
@@ -143,11 +149,12 @@ function generateSeed() {
   const schedules = [
     {
       id: 1,
+      creatorId: 101,
       placeId: 1,
       title: '성수동 스터디 모임',
       description: '각자 공부할 자료를 가져와서 조용히 작업하는 모임입니다. 중간에 짧은 휴식 시간도 있어요.',
       category: 'STUDY',
-      dateTime: iso(1 * HOUR), // 1시간 후 → 매칭 인증 활성
+      scheduledAt: scheduledAtFmt(1 * HOUR), // 1시간 후 → 매칭 인증 활성
       genderCondition: 'ANY',
       maxParticipants: 4,
       status: 'PENDING',
@@ -180,11 +187,11 @@ function generateSeed() {
     },
     {
       id: 2,
+      creatorId: 103,
       placeId: 2,
       title: '점심 같이 먹어요',
       description: '간단히 점심 같이 하실 분 모집합니다.',
       category: 'MEAL',
-      dateTime: iso(1.5 * HOUR),
       genderCondition: 'ANY',
       maxParticipants: 3,
       status: 'PENDING',
@@ -217,14 +224,15 @@ function generateSeed() {
     },
     {
       id: 3,
+      creatorId: 102,
       placeId: 3,
       title: '독서 모임',
       description: '책 좋아하시는 분들과 함께해요.',
       category: 'CULTURAL',
-      dateTime: iso(1 * DAY),
       genderCondition: 'ANY',
       maxParticipants: 4,
       status: 'PENDING',
+      scheduledAt: scheduledAtFmt(1 * DAY),
       canceledAt: null,
       place: {
         id: 3, categoryId: 2,
@@ -241,13 +249,14 @@ function generateSeed() {
     },
     {
       id: 4,
+      creatorId: 103,
       placeId: 1,
       title: '아침 스터디',
       description: '아침형 인간들의 스터디.',
       category: 'STUDY',
-      dateTime: iso(-2 * DAY),
       genderCondition: 'ANY',
       maxParticipants: 4,
+      scheduledAt: scheduledAtFmt(-2 * DAY),
       status: 'COMPLETED',
       canceledAt: null,
       place: {
@@ -265,14 +274,15 @@ function generateSeed() {
     },
     {
       id: 5,
+      creatorId: 101,
       placeId: 5,
       title: '운동 같이 해요',
       description: '러닝 메이트 구합니다.',
       category: 'EXERCISE',
-      dateTime: iso(-1 * DAY),
       genderCondition: 'ANY',
       maxParticipants: 4,
       status: 'CANCELED',
+      scheduledAt: scheduledAtFmt(-1 * DAY),
       canceledAt: iso(-1.5 * DAY),
       place: {
         id: 5, categoryId: 4,
