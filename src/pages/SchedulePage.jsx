@@ -1,28 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SCHEDULE_CATEGORY_LABEL, SCHEDULE_STATUS_LABEL } from '../types/types';
 import { api } from '../api/api';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 import LoginRequiredModal from '../components/common/LoginRequiredModal';
 import ScheduleCard from '../components/schedule/ScheduleCard';
 
-const STATUS_COLOR = {
-  PENDING: '#FEE500',
-  IN_PROGRESS: '#2196F3',
-  COMPLETED: '#4CAF50',
-  CANCELED: '#ff3b30',
-};
-
-// YYYY-MM-DD HH:mm 형식으로 포맷
-const formatDateTime = (iso) => {
-  const d = new Date(iso);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mi = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
-};
 
 export default function SchedulePage() {
   const navigate = useNavigate();
