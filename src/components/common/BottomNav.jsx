@@ -7,7 +7,6 @@ const tabs = [
   { label: '홈화면', path: '/home' },
   { label: '일정현황', path: '/schedule' },
   { label: '인증하기', path: '__qr__' },        // 특수 경로 (라우팅 X, 모달 트리거)
-  { label: '큐레이션', path: '/curation' },
   { label: '마이페이지', path: '/mypage' },
 ];
 
