@@ -122,27 +122,27 @@ export const api = {
   },
 
   // 장소
-  places: {
-    list: () => {
-      if (IS_MOCK) return mockDb.places.list();
-      return request('/api/places');
-    },
-
-    detail: (id) => {
-      if (IS_MOCK) return mockDb.places.detail(id);
-      return request(`/api/places/${id}`);
-    },
-
-    search: (filters = {}) => {
-      if (IS_MOCK) {
-        // 가장 흔한 검색 키 두 가지를 같이 지원
-        const q = filters.q ?? filters.query ?? filters.keyword ?? '';
-        return mockDb.places.search(q);
-      }
-      const params = new URLSearchParams(filters).toString();
-      return request(`/api/places/search${params ? '?' + params : ''}`);
-    },
+// 장소
+places: {
+  list: () => {
+    if (IS_MOCK) return mockDb.places.list();
+    return request('/api/v1/places');
   },
+
+  detail: (id) => {
+    if (IS_MOCK) return mockDb.places.detail(id);
+    return request(`/api/v1/places/${id}`);
+  },
+
+  // 검색: 상훈님 명세 = /api/v1/places/search?keyword=
+  // mock의 places.search는 keyword 없으면 전체, 있으면 name/address/category 필터
+  // TODO: 백엔드 실제 keyword 매칭 범위 실연동 시 확인
+  search: (keyword) => {
+    if (IS_MOCK) return mockDb.places.search(keyword);
+    const params = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
+    return request(`/api/v1/places/search${params}`);
+  },
+},
 
   // 마이페이지
   users: {
