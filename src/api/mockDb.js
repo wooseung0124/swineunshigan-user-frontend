@@ -24,6 +24,29 @@ function mockLog(fnName, args) {
 }
 
 // -------------------------------------------------------------
+// 영업시간(operations) 생성 헬퍼
+// - 백엔드 장소 상세 응답의 operations 형식을 흉내냄 (요일 7개)
+// - 평일/주말 통일된 기본 세트. 휴무 요일은 opening/closing = null
+// - mock 전용. 백엔드 붙으면(IS_MOCK=false) 사용 안 됨.
+// -------------------------------------------------------------
+const WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
+function buildOperations(startId, { opening = '10:30', closing = '22:00', closedDays = ['SUNDAY'] } = {}) {
+  return WEEK.map((day, i) => {
+    const closed = closedDays.includes(day);
+    return {
+      id: startId + i,
+      dayOfWeek: day,
+      openingTime: closed ? null : opening,
+      closingTime: closed ? null : closing,
+      breakTimeStart: null,
+      breakTimeEnd: null,
+      lastOrder: null,
+    };
+  });
+}
+
+// -------------------------------------------------------------
 // Seed 데이터 생성 (모듈 첫 로드 시점 기준 상대 시간)
 // -------------------------------------------------------------
 function generateSeed() {
@@ -38,79 +61,90 @@ function generateSeed() {
     const pad = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
+  const createdAt = iso(-30 * DAY); // 장소 등록 시점 (적당히 과거)
 
-  // ----- Places (HomePage DUMMY_PLACES와 동일 구조) -----
+  // ----- Places (백엔드 명세: category 문자열, 평면 구조) -----
+  // images/operations는 별도 테이블(placeImages/placeOperations)로 분리(정규화)
   const places = [
     {
       id: 1,
-      categoryId: 1,
+      category: '음식점',
       name: '맞스터치 성수역점',
       address: '서울 성동구 성수동2가 289-10',
-      snsLink: null,
       contact: '02-1234-5678',
+      snsLink: null,
       latitude: 37.5445,
       longitude: 127.0560,
-      category: { id: 1, name: '음식점' },
-      images: [],
-      openingHours: [],
-      isOpenNow: true,
+      createdAt,
+      updatedAt: createdAt,
     },
     {
       id: 2,
-      categoryId: 2,
+      category: '카페',
       name: '서울숲 카페',
       address: '서울 성동구 서울숲길 17',
-      snsLink: null,
       contact: '02-9876-5432',
+      snsLink: null,
       latitude: 37.5465,
       longitude: 127.0580,
-      category: { id: 2, name: '카페' },
-      images: [],
-      openingHours: [],
-      isOpenNow: true,
+      createdAt,
+      updatedAt: createdAt,
     },
     {
       id: 3,
-      categoryId: 2,
+      category: '카페',
       name: '성수 북카페',
       address: '서울 성동구 연무장길 15',
-      snsLink: null,
       contact: null,
+      snsLink: null,
       latitude: 37.5430,
       longitude: 127.0540,
-      category: { id: 2, name: '카페' },
-      images: [],
-      openingHours: [],
-      isOpenNow: false,
+      createdAt,
+      updatedAt: createdAt,
     },
     {
       id: 4,
-      categoryId: 3,
+      category: '문화시설',
       name: '성수 미술관',
       address: '서울 성동구 성수일로 56',
-      snsLink: null,
       contact: '02-3333-4444',
+      snsLink: null,
       latitude: 37.5455,
       longitude: 127.0570,
-      category: { id: 3, name: '문화시설' },
-      images: [],
-      openingHours: [],
-      isOpenNow: true,
+      createdAt,
+      updatedAt: createdAt,
     },
     {
       id: 5,
-      categoryId: 4,
+      category: '레포츠',
       name: '서울숲 공원',
       address: '서울 성동구 뚝섬로 273',
-      snsLink: null,
       contact: null,
+      snsLink: null,
       latitude: 37.5440,
       longitude: 127.0590,
-      category: { id: 4, name: '레포츠' },
-      images: [],
-      openingHours: [],
-      isOpenNow: true,
+      createdAt,
+      updatedAt: createdAt,
     },
+  ];
+
+  // ----- Place Images (placeId로 연결) -----
+  const placeImages = [
+    { id: 1, placeId: 1, imageUrl: 'https://picsum.photos/seed/place1/600/400', isMain: true,  createdAt, updatedAt: createdAt },
+    { id: 2, placeId: 1, imageUrl: 'https://picsum.photos/seed/place1b/600/400', isMain: false, createdAt, updatedAt: createdAt },
+    { id: 3, placeId: 2, imageUrl: 'https://picsum.photos/seed/place2/600/400', isMain: true,  createdAt, updatedAt: createdAt },
+    { id: 4, placeId: 3, imageUrl: 'https://picsum.photos/seed/place3/600/400', isMain: true,  createdAt, updatedAt: createdAt },
+    { id: 5, placeId: 4, imageUrl: 'https://picsum.photos/seed/place4/600/400', isMain: true,  createdAt, updatedAt: createdAt },
+    { id: 6, placeId: 5, imageUrl: 'https://picsum.photos/seed/place5/600/400', isMain: true,  createdAt, updatedAt: createdAt },
+  ];
+
+  // ----- Place Operations (placeId로 연결, 요일별 7개씩) -----
+  // 통일 세트: 평일~토 10:30~22:00, 일요일 휴무. (mock 전용 흉내 데이터)
+  const placeOperations = [
+    ...places.flatMap((p, idx) =>
+      buildOperations(idx * 7 + 1, { opening: '10:30', closing: '22:00', closedDays: ['SUNDAY'] })
+        .map(op => ({ ...op, placeId: p.id }))
+    ),
   ];
 
   // ----- Users (mock auth 3종 + 일정 참여자 4종) -----
@@ -145,7 +179,8 @@ function generateSeed() {
     },
   ];
 
-  // ----- Schedules (기존 동일) -----
+  // ----- Schedules -----
+  // place nested는 백엔드 Schedule 응답 형식({id,name,address})에 맞춤
   const schedules = [
     {
       id: 1,
@@ -159,15 +194,7 @@ function generateSeed() {
       maxParticipants: 4,
       status: 'PENDING',
       canceledAt: null,
-      place: {
-        id: 1, categoryId: 1,
-        name: '맞스터치 성수역점',
-        address: '서울 성동구 성수동2가 289-10',
-        snsLink: null, contact: '02-1234-5678',
-        latitude: 37.5445, longitude: 127.0560,
-        category: { id: 1, name: '음식점' },
-        images: [],
-      },
+      place: { id: 1, name: '맞스터치 성수역점', address: '서울 성동구 성수동2가 289-10' },
       participants: [
         {
           id: 1, scheduleId: 1, userId: 101,
@@ -196,15 +223,7 @@ function generateSeed() {
       maxParticipants: 3,
       status: 'PENDING',
       canceledAt: null,
-      place: {
-        id: 2, categoryId: 2,
-        name: '서울숲 카페',
-        address: '서울 성동구 서울숲길 17',
-        snsLink: null, contact: '02-9876-5432',
-        latitude: 37.5465, longitude: 127.0580,
-        category: { id: 2, name: '카페' },
-        images: [],
-      },
+      place: { id: 2, name: '서울숲 카페', address: '서울 성동구 서울숲길 17' },
       participants: [
         {
           id: 3, scheduleId: 2, userId: 103,
@@ -234,15 +253,7 @@ function generateSeed() {
       status: 'PENDING',
       scheduledAt: scheduledAtFmt(1 * DAY),
       canceledAt: null,
-      place: {
-        id: 3, categoryId: 2,
-        name: '성수 북카페',
-        address: '서울 성동구 연무장길 15',
-        snsLink: null, contact: null,
-        latitude: 37.5430, longitude: 127.0540,
-        category: { id: 2, name: '카페' },
-        images: [],
-      },
+      place: { id: 3, name: '성수 북카페', address: '서울 성동구 연무장길 15' },
       participants: [],
       currentParticipants: 4,
       myRole: 'PARTICIPANT',
@@ -259,15 +270,7 @@ function generateSeed() {
       scheduledAt: scheduledAtFmt(-2 * DAY),
       status: 'COMPLETED',
       canceledAt: null,
-      place: {
-        id: 1, categoryId: 1,
-        name: '맞스터치 성수역점',
-        address: '서울 성동구 성수동2가 289-10',
-        snsLink: null, contact: '02-1234-5678',
-        latitude: 37.5445, longitude: 127.0560,
-        category: { id: 1, name: '음식점' },
-        images: [],
-      },
+      place: { id: 1, name: '맞스터치 성수역점', address: '서울 성동구 성수동2가 289-10' },
       participants: [],
       currentParticipants: 4,
       myRole: 'PARTICIPANT',
@@ -284,24 +287,14 @@ function generateSeed() {
       status: 'CANCELED',
       scheduledAt: scheduledAtFmt(-1 * DAY),
       canceledAt: iso(-1.5 * DAY),
-      place: {
-        id: 5, categoryId: 4,
-        name: '서울숲 공원',
-        address: '서울 성동구 뚝섬로 273',
-        snsLink: null, contact: null,
-        latitude: 37.5440, longitude: 127.0590,
-        category: { id: 4, name: '레포츠' },
-        images: [],
-      },
+      place: { id: 5, name: '서울숲 공원', address: '서울 성동구 뚝섬로 273' },
       participants: [],
       currentParticipants: 2,
       myRole: 'CREATOR',
     },
   ];
 
-  // ----- Notifications (NotificationsPage DUMMY_NOTIFICATIONS 이관) -----
-  // 'time' 문자열 ('5분 전' 등)은 createdAt(ISO)로 변환. UI에서 상대 시간 포맷.
-  // userId=1001(카카오)에게 할당. 실제 mock 로그인된 사용자에 따라 list 필터링 적용.
+  // ----- Notifications -----
   const notifications = [
     { id: 1, userId: 1001, type: 'schedule_cancelled', title: '일정이 취소되었습니다',     body: '맞스터치 성수역점 - 점심 같이 먹어요 일정이 취소되었습니다.',                       createdAt: iso(-5 * MIN),  isRead: false },
     { id: 2, userId: 1001, type: 'schedule_joined',    title: '새로운 참여자가 들어왔어요', body: "이수민님이 '성수동 스터디 모임'에 참여했습니다.",                                  createdAt: iso(-1 * HOUR), isRead: false },
@@ -310,8 +303,7 @@ function generateSeed() {
     { id: 5, userId: 1001, type: 'system',             title: '쉬는시간 서비스 안내',       body: '새로운 큐레이션 콘텐츠가 등록되었어요. 확인해보세요!',                                createdAt: iso(-3 * DAY),  isRead: true },
   ];
 
-  // ----- Curations (CurationPage DUMMY_FEEDS 이관) -----
-  // 'bookmarked' 플래그는 bookmarks 테이블로 분리 (정규화).
+  // ----- Curations -----
   const curations = [
     { id: 1, title: '성수동 분위기 좋은 카페 BEST 5',  summary: '요즘 성수에서 가장 핫한 카페들을 모아봤어요.',    category: '카페',     imageUrl: null, createdAt: '2026-04-28T10:00:00Z' },
     { id: 2, title: '서울숲 산책 코스 추천',           summary: '운동도 하고 자연도 즐기고. 추천 산책 코스 3가지.', category: '레포츠',   imageUrl: null, createdAt: '2026-04-25T10:00:00Z' },
@@ -331,6 +323,8 @@ function generateSeed() {
     statusShares: [],   // 단계 2(이동 소식)에서 사용 예정
     verifications: [],  // 단계 3(QR 인증)에서 사용
     places,
+    placeImages,
+    placeOperations,
     users,
     notifications,
     curations,
@@ -369,17 +363,16 @@ const fail = (msg) => Promise.reject(new Error(msg));
 // -------------------------------------------------------------
 export const mockDb = {
   // ===========================================================
-  // schedules (기존)
+  // schedules
   // ===========================================================
   schedules: {
-    create: (data) => request('/api/schedules', { method: 'POST', body: JSON.stringify(data) }),
     list: () => {
       mockLog('schedules.list');
       return ok(load().schedules);
     },
     listByPlace: (placeId) => {
       mockLog('schedules.listByPlace', placeId);
-      return ok(load().schedules.filter(s => s.placeId === placeId));
+      return ok(load().schedules.filter(s => s.placeId === Number(placeId)));
     },
 
     detail: (id) => {
@@ -461,26 +454,42 @@ export const mockDb = {
   // places
   // ===========================================================
   places: {
+    // 목록: place 메타만 반환 (images/operations 불필요)
     list: () => {
       mockLog('places.list');
       return ok(load().places);
     },
 
+    // 상세: {place, images, operations} 조립 (백엔드 명세 형식)
     detail: (id) => {
       mockLog('places.detail', id);
-      const found = load().places.find(p => p.id === Number(id));
-      return found ? ok(found) : fail(`Place not found: ${id}`);
+      const db = load();
+      const place = db.places.find(p => p.id === Number(id));
+      if (!place) return fail(`Place not found: ${id}`);
+
+      const images = db.placeImages.filter(img => img.placeId === Number(id));
+      // operations는 요일 순서 보장 (월→일)
+      const dayOrder = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+      const operations = db.placeOperations
+        .filter(op => op.placeId === Number(id))
+        .sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek))
+        // 백엔드 응답엔 placeId가 없으므로 제거하고 반환
+        .map(({ placeId, ...rest }) => rest);
+
+      return ok({ place, images, operations });
     },
 
-    search: (query) => {
-      mockLog('places.search', query);
-      const q = String(query || '').trim().toLowerCase();
+    // 검색: 단순 키워드 (name / address / category 부분 일치)
+    // 백엔드 = /api/v1/places/search?keyword=. mock은 keyword 없으면 전체.
+    search: (keyword) => {
+      mockLog('places.search', keyword);
+      const q = String(keyword || '').trim().toLowerCase();
       const all = load().places;
       if (!q) return ok(all);
       const filtered = all.filter(p =>
         p.name.toLowerCase().includes(q) ||
         p.address.toLowerCase().includes(q) ||
-        p.category?.name?.toLowerCase().includes(q)
+        (p.category || '').toLowerCase().includes(q)
       );
       return ok(filtered);
     },

@@ -105,15 +105,32 @@ export const MOVE_STATUS_LABEL = {
   ABSENT: '불참 양해',
 };
 
-/** 요일 (opening_hours.day_of_week) */
+/** 요일 (operations.dayOfWeek) — 백엔드 풀네임 기준 (장소 상세 명세) */
 export const DAY_OF_WEEK = {
-  MON: 'MON',
-  TUE: 'TUE',
-  WED: 'WED',
-  THU: 'THU',
-  FRI: 'FRI',
-  SAT: 'SAT',
-  SUN: 'SUN',
+  MONDAY: 'MONDAY',
+  TUESDAY: 'TUESDAY',
+  WEDNESDAY: 'WEDNESDAY',
+  THURSDAY: 'THURSDAY',
+  FRIDAY: 'FRIDAY',
+  SATURDAY: 'SATURDAY',
+  SUNDAY: 'SUNDAY',
+};
+
+/** 요일 표시용 한글 라벨 */
+export const DAY_OF_WEEK_LABEL = {
+  MONDAY: '월',
+  TUESDAY: '화',
+  WEDNESDAY: '수',
+  THURSDAY: '목',
+  FRIDAY: '금',
+  SATURDAY: '토',
+  SUNDAY: '일',
+};
+
+/** QR 인증 상태 (attendances) */
+export const ATTENDANCE_STATUS = {
+  PENDING: 'PENDING',   // 미인증
+  ATTENDED: 'ATTENDED', // 인증 완료
 };
 
 
@@ -154,49 +171,53 @@ export const DAY_OF_WEEK = {
  */
 
 /**
- * 장소 카테고리
- * @typedef {Object} PlaceCategory
- * @property {number} id
- * @property {string} name - ex) '카페', '음식점', '문화시설', '레포츠'
- */
-
-/**
- * 장소
+ * 장소 — 목록/상세 공통 (백엔드 명세 5/21)
+ * - GET /api/v1/places (목록) 의 각 항목
+ * - GET /api/v1/places/{id} (상세) 응답의 place 필드
  * @typedef {Object} Place
  * @property {number} id
- * @property {number} categoryId
+ * @property {string} category - 카테고리명 문자열. ex) '음식점', '카페'
  * @property {string} name
  * @property {string} address
- * @property {string|null} snsLink
  * @property {string|null} contact - 연락처
+ * @property {string|null} snsLink
  * @property {number} latitude
  * @property {number} longitude
+ * @property {string} createdAt
+ * @property {string} updatedAt
  *
- * 조인되어 응답에 포함될 가능성 있는 필드:
- * @property {PlaceCategory} [category]
- * @property {OpeningHours[]} [openingHours]
- * @property {PlaceImage[]} [images]
- * @property {boolean} [isOpenNow] - 클라이언트 계산 or 백엔드 계산값
+ * 클라이언트 계산값 (백엔드 미제공):
+ * @property {boolean} [isOpenNow] - operations 기반으로 클라이언트가 계산
  */
 
 /**
- * 장소 이미지
+ * 장소 이미지 (장소 상세의 images 배열)
  * @typedef {Object} PlaceImage
  * @property {number} id
- * @property {number} placeId
  * @property {string} imageUrl
- * @property {boolean} isMain
+ * @property {boolean} isMain - 대표 이미지 여부
+ * @property {string} createdAt
+ * @property {string} updatedAt
  */
 
 /**
- * 영업 시간
- * @typedef {Object} OpeningHours
+ * 영업시간 (장소 상세의 operations 배열, 요일별 1개씩 총 7개)
+ * @typedef {Object} PlaceOperation
  * @property {number} id
- * @property {number} placeId
  * @property {keyof typeof DAY_OF_WEEK} dayOfWeek
- * @property {string} openingTime - HH:mm (ERD는 DATETIME이지만 TIME 권장)
- * @property {string} closingTime - HH:mm
- * @property {boolean} isOpened
+ * @property {string|null} openingTime - "HH:mm". null이면 휴무
+ * @property {string|null} closingTime - "HH:mm". null이면 휴무
+ * @property {string|null} breakTimeStart - "HH:mm" or null
+ * @property {string|null} breakTimeEnd - "HH:mm" or null
+ * @property {string|null} lastOrder - "HH:mm" or null
+ */
+
+/**
+ * 장소 상세 응답 (GET /api/v1/places/{id})
+ * @typedef {Object} PlaceDetail
+ * @property {Place} place
+ * @property {PlaceImage[]} images
+ * @property {PlaceOperation[]} operations - 요일별 7개
  */
 
 /**
@@ -251,28 +272,19 @@ export const DAY_OF_WEEK = {
  */
 
 /**
- * 매칭 인증 기록 (QR 인증)
- * - ERD: 테이블명 미지정 ('Untitled7'), 컬럼 id만 존재
- * - ※ 백엔드 분과 합의 필요. 아래는 프론트 추정 스키마.
+ * QR 매칭 인증 (attendances) - 백엔드 명세 5/30
+ * - POST /api/v1/schedules/{id}/attendances (토큰 인증) → 단일 Attendance
+ * - GET  /api/v1/schedules/{id}/attendances (상태 조회) → Attendance[]
  *
- * @typedef {Object} MatchVerification
+ * @typedef {Object} Attendance
  * @property {number} id
  * @property {number} scheduleId
- * @property {number} verifierId       - 인증한 사람 (보통 개설자)
- * @property {number} verifiedUserId   - 인증된 사람 (참여자)
- * @property {string} verifiedAt       - 인증 시각 (ISO datetime)
- */
-
-/**
- * QR 코드 페이로드 (참여자 화면에 표시되는 데이터)
- * - 개설자가 스캔하면 이 JSON이 디코딩됨
- * - 백엔드에서는 이 페이로드를 받아 검증 후 MatchVerification 생성
- *
- * @typedef {Object} QRPayload
- * @property {number} scheduleId
- * @property {number} userId           - QR을 발급한 사람 (참여자)
- * @property {number} issuedAt         - QR 발급 시각 (Unix ms) - 만료 검증용
- * @property {string} nonce            - 일회용 토큰 (재사용 방지)
+ * @property {number} participantId
+ * @property {number} userId
+ * @property {keyof typeof ATTENDANCE_STATUS} status
+ * @property {string|null} attendedAt - 인증 시각(ISO). PENDING이면 null
+ * @property {string} createdAt
+ * @property {string} updatedAt
  */
 
 
