@@ -4,6 +4,7 @@ import { SCHEDULE_CATEGORY_LABEL, SCHEDULE_STATUS_LABEL } from '../types/types';
 import { api } from '../api/api';
 import QRDisplay from '../components/auth/QRDisplay';
 import QRScanner from '../components/auth/QRScanner';
+import { useAuthStore, selectUser } from '../store/authStore';
 
 const STATUS_COLOR = {
   PENDING: '#FEE500',
@@ -40,6 +41,8 @@ const formatRemaining = (ms) => {
 export default function ScheduleDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const user = useAuthStore(selectUser);
+  const currentUserId = user?.id;
 
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +61,7 @@ export default function ScheduleDetailPage() {
     let alive = true;
     setLoading(true);
     Promise.all([
-      api.schedules.detail(id),
+      api.schedules.detail(id, currentUserId),
       api.schedules.verifications(id).catch(() => []),
     ])
       .then(([data, verifs]) => {
@@ -75,7 +78,7 @@ export default function ScheduleDetailPage() {
       })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [id]);
+  }, [id, currentUserId]);
 
   useEffect(() => loadAll(), [loadAll]);
 
@@ -127,8 +130,25 @@ export default function ScheduleDetailPage() {
   const isCompleted = schedule.status === 'COMPLETED';
   const creator = schedule.participants?.find(p => p.role === 'CREATOR');
 
+  const canJoin =
+  schedule.myRole == null
+  && schedule.status === 'PENDING'
+  && schedule.currentParticipants < schedule.maxParticipants;
+
+const joinButtonLabel =
+  schedule.myRole === 'PARTICIPANT' ? '참여 중'
+  : schedule.currentParticipants >= schedule.maxParticipants ? '모집 마감'
+  : schedule.status !== 'PENDING' ? '모집 종료'
+  : '참여하기';
+
+const handleJoin = () => {
+  api.schedules.join(id, currentUserId)
+    .then(() => { loadAll(); })
+    .catch(err => { alert(err.message || '참여에 실패했습니다.'); });
+};
+
   // 매칭 인증 활성화 계산
-  const appointmentMs = new Date(schedule.dateTime).getTime();
+  const appointmentMs = new Date(schedule.scheduledAt).getTime();
   const msUntilAppointment = appointmentMs - Date.now();
   const isMatchAuthActive =
     !isCancelled && !isCompleted &&
@@ -453,42 +473,64 @@ export default function ScheduleDetailPage() {
         )}
 
         {/* 버튼 */}
-        {!isCancelled && (
-          <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-            <button
-              disabled={!isOwner}
-              style={{
-                flex: 1,
-                padding: '14px',
-                background: isOwner ? '#A8DC4F' : '#eee',
-                color: isOwner ? '#000' : '#999',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '15px',
-                fontWeight: '700',
-                cursor: isOwner ? 'pointer' : 'not-allowed',
-              }}
-            >
-              수정하기
-            </button>
-            <button
-              disabled={!isOwner}
-              style={{
-                flex: 1,
-                padding: '14px',
-                background: '#fff',
-                color: isOwner ? '#ff3b30' : '#999',
-                border: `1px solid ${isOwner ? '#ff3b30' : '#eee'}`,
-                borderRadius: '12px',
-                fontSize: '15px',
-                fontWeight: '700',
-                cursor: isOwner ? 'pointer' : 'not-allowed',
-              }}
-            >
-              취소하기
-            </button>
-          </div>
-        )}
+        {!isCancelled && isOwner && (
+  <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+    <button
+      disabled={!isOwner}
+      style={{
+        flex: 1,
+        padding: '14px',
+        background: isOwner ? '#A8DC4F' : '#eee',
+        color: isOwner ? '#000' : '#999',
+        border: 'none',
+        borderRadius: '12px',
+        fontSize: '15px',
+        fontWeight: '700',
+        cursor: isOwner ? 'pointer' : 'not-allowed',
+      }}
+    >
+      수정하기
+    </button>
+    <button
+      disabled={!isOwner}
+      style={{
+        flex: 1,
+        padding: '14px',
+        background: '#fff',
+        color: isOwner ? '#ff3b30' : '#999',
+        border: `1px solid ${isOwner ? '#ff3b30' : '#eee'}`,
+        borderRadius: '12px',
+        fontSize: '15px',
+        fontWeight: '700',
+        cursor: isOwner ? 'pointer' : 'not-allowed',
+      }}
+    >
+      취소하기
+    </button>
+  </div>
+)}
+
+{!isCancelled && !isOwner && (
+  <div style={{ marginTop: '20px' }}>
+    <button
+      onClick={handleJoin}
+      disabled={!canJoin}
+      style={{
+        width: '100%',
+        padding: '14px',
+        background: canJoin ? '#A8DC4F' : '#eee',
+        color: canJoin ? '#000' : '#999',
+        border: 'none',
+        borderRadius: '12px',
+        fontSize: '15px',
+        fontWeight: '700',
+        cursor: canJoin ? 'pointer' : 'not-allowed',
+      }}
+    >
+      {joinButtonLabel}
+    </button>
+  </div>
+)}
       </div>
     </div>
   );

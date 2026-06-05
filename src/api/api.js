@@ -86,8 +86,8 @@ export const api = {
       return request(`/api/v1/places/${placeId}/schedules`);  // ← 상훈님 패턴
     },
 
-    detail: (id) => {
-      if (IS_MOCK) return mockDb.schedules.detail(id);
+    detail: (id, currentUserId) => {
+      if (IS_MOCK) return mockDb.schedules.detail(id, currentUserId);
       return request(`/api/schedules/${id}`);
     },
 
@@ -101,8 +101,14 @@ export const api = {
       return request(`/api/schedules/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
     },
 
-    join: (id) => request(`/api/schedules/${id}/join`, { method: 'POST' }),
-    leave: (id) => request(`/api/schedules/${id}/leave`, { method: 'DELETE' }),
+    join: (id, currentUserId) => {
+      if (IS_MOCK) return mockDb.schedules.join(Number(id), currentUserId);
+      return request(`/api/schedules/${id}/join`, { method: 'POST' });
+    },
+    leave: (id, currentUserId) => {
+      if (IS_MOCK) return mockDb.schedules.leave(Number(id), currentUserId);
+      return request(`/api/schedules/${id}/leave`, { method: 'DELETE' });
+    },
     upcoming: () => request('/api/schedules/upcoming'),
 
     // QR 인증 기록 목록

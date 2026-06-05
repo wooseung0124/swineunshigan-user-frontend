@@ -116,29 +116,55 @@ export function isMockAuthEnabled() {
  * 어떤 provider로 로그인했는지 구분 가능하게 name/id를 다르게 둠.
  * @type {Record<'kakao'|'naver'|'google', import('../types/types').User>}
  */
+// const MOCK_USERS = {
+//   kakao: {
+//     id: 1001,
+//     name: '카카오목업',
+//     gender: 'MALE',
+//     status: 'ACTIVE',
+//     withdrawalDate: null,
+//   },
+//   naver: {
+//     id: 1002,
+//     name: '네이버목업',
+//     gender: 'FEMALE',
+//     status: 'ACTIVE',
+//     withdrawalDate: null,
+//   },
+//   google: {
+//     id: 1003,
+//     name: '구글목업',
+//     gender: 'MALE',
+//     status: 'ACTIVE',
+//     withdrawalDate: null,
+//   },
+// };
+
 const MOCK_USERS = {
   kakao: {
-    id: 1001,
-    name: '카카오목업',
+    id: 101,
+    name: '김진우',
     gender: 'MALE',
     status: 'ACTIVE',
     withdrawalDate: null,
   },
   naver: {
-    id: 1002,
-    name: '네이버목업',
+    id: 102,
+    name: '이수민',
     gender: 'FEMALE',
     status: 'ACTIVE',
     withdrawalDate: null,
   },
   google: {
-    id: 1003,
-    name: '구글목업',
-    gender: 'MALE',
+    id: 103,
+    name: '박지수',
+    gender: 'FEMALE',
     status: 'ACTIVE',
     withdrawalDate: null,
   },
 };
+
+
 
 /**
  * 백엔드 콜백 응답을 흉내낸 mock 데이터 생성.

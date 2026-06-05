@@ -150,18 +150,6 @@ function generateSeed() {
   // ----- Users (mock auth 3종 + 일정 참여자 4종) -----
   const users = [
     {
-      id: 1001, name: '카카오목업', gender: 'MALE', status: 'ACTIVE', withdrawalDate: null,
-      profile: { birthDate: '1995-01-01', profileImageUrl: null, mbti: 'INFP', introduction: '카카오로 로그인한 테스트 사용자.', activity: '카페에서 책 읽기' },
-    },
-    {
-      id: 1002, name: '네이버목업', gender: 'FEMALE', status: 'ACTIVE', withdrawalDate: null,
-      profile: { birthDate: '1996-03-15', profileImageUrl: null, mbti: 'ENFP', introduction: '네이버로 로그인한 테스트 사용자.', activity: '서울숲 산책' },
-    },
-    {
-      id: 1003, name: '구글목업', gender: 'MALE', status: 'ACTIVE', withdrawalDate: null,
-      profile: { birthDate: '1994-07-22', profileImageUrl: null, mbti: 'INTJ', introduction: '구글로 로그인한 테스트 사용자.', activity: '운동' },
-    },
-    {
       id: 101, name: '김진우', gender: 'MALE', status: 'ACTIVE', withdrawalDate: null,
       profile: { birthDate: '1995-12-09', profileImageUrl: null, mbti: 'INFP', introduction: '음악과 책을 좋아하는 프론트엔드 개발자입니다.', activity: '카페에서 책 읽기' },
     },
@@ -296,11 +284,11 @@ function generateSeed() {
 
   // ----- Notifications -----
   const notifications = [
-    { id: 1, userId: 1001, type: 'schedule_cancelled', title: '일정이 취소되었습니다',     body: '맞스터치 성수역점 - 점심 같이 먹어요 일정이 취소되었습니다.',                       createdAt: iso(-5 * MIN),  isRead: false },
-    { id: 2, userId: 1001, type: 'schedule_joined',    title: '새로운 참여자가 들어왔어요', body: "이수민님이 '성수동 스터디 모임'에 참여했습니다.",                                  createdAt: iso(-1 * HOUR), isRead: false },
-    { id: 3, userId: 1001, type: 'schedule_reminder',  title: '약속 시간이 다가오고 있어요', body: '독서 모임 시작까지 1시간 남았습니다.',                                              createdAt: iso(-3 * HOUR), isRead: false },
-    { id: 4, userId: 1001, type: 'schedule_completed', title: '일정이 완료되었습니다',     body: '서울숲 카페 - 카페 모임이 완료되었습니다.',                                          createdAt: iso(-1 * DAY),  isRead: true },
-    { id: 5, userId: 1001, type: 'system',             title: '쉬는시간 서비스 안내',       body: '새로운 큐레이션 콘텐츠가 등록되었어요. 확인해보세요!',                                createdAt: iso(-3 * DAY),  isRead: true },
+    { id: 1, userId: 101, type: 'schedule_cancelled', title: '일정이 취소되었습니다',     body: '맞스터치 성수역점 - 점심 같이 먹어요 일정이 취소되었습니다.',                       createdAt: iso(-5 * MIN),  isRead: false },
+    { id: 2, userId: 101, type: 'schedule_joined',    title: '새로운 참여자가 들어왔어요', body: "이수민님이 '성수동 스터디 모임'에 참여했습니다.",                                  createdAt: iso(-1 * HOUR), isRead: false },
+    { id: 3, userId: 101, type: 'schedule_reminder',  title: '약속 시간이 다가오고 있어요', body: '독서 모임 시작까지 1시간 남았습니다.',                                              createdAt: iso(-3 * HOUR), isRead: false },
+    { id: 4, userId: 101, type: 'schedule_completed', title: '일정이 완료되었습니다',     body: '서울숲 카페 - 카페 모임이 완료되었습니다.',                                          createdAt: iso(-1 * DAY),  isRead: true },
+    { id: 5, userId: 101, type: 'system',             title: '쉬는시간 서비스 안내',       body: '새로운 큐레이션 콘텐츠가 등록되었어요. 확인해보세요!',                                createdAt: iso(-3 * DAY),  isRead: true },
   ];
 
   // ----- Curations -----
@@ -312,12 +300,11 @@ function generateSeed() {
     { id: 5, title: '성수 핫플 - 인스타 감성 가득',     summary: '사진 찍기 좋은 성수의 인스타 핫플.',              category: '카페',     imageUrl: null, createdAt: '2026-04-18T10:00:00Z' },
   ];
 
-  // ----- Bookmarks (정규화 - userId 1001이 큐레이션 1, 4 북마크) -----
-  const bookmarks = [
-    { id: 1, userId: 1001, curationId: 1, createdAt: iso(-2 * DAY) },
-    { id: 2, userId: 1001, curationId: 4, createdAt: iso(-1 * DAY) },
-  ];
-
+// ----- Bookmarks (정규화 - userId 101이 큐레이션 1, 4 북마크) -----
+const bookmarks = [
+  { id: 1, userId: 101, curationId: 1, createdAt: iso(-2 * DAY) },
+  { id: 2, userId: 101, curationId: 4, createdAt: iso(-1 * DAY) },
+];
   return {
     schedules,
     statusShares: [],   // 단계 2(이동 소식)에서 사용 예정
@@ -375,10 +362,73 @@ export const mockDb = {
       return ok(load().schedules.filter(s => s.placeId === Number(placeId)));
     },
 
-    detail: (id) => {
-      mockLog('schedules.detail', id);
+    detail: (id, currentUserId) => {
+      mockLog('schedules.detail', id, currentUserId);
       const found = load().schedules.find(s => s.id === Number(id));
-      return found ? ok(found) : fail(`Schedule not found: ${id}`);
+      if (!found) return fail(`Schedule not found: ${id}`);
+    
+      // 로그인 유저 기준으로 myRole 계산 (하드코딩 myRole 대체)
+      let myRole = null; // 비참여자(GUEST)
+      if (currentUserId != null) {
+        if (found.creatorId === currentUserId) {
+          myRole = 'CREATOR';
+        } else if (found.participants?.some(
+          p => p.userId === currentUserId && p.status === 'ACTIVE'
+        )) {
+          myRole = 'PARTICIPANT';
+        }
+      }
+    
+      return ok({ ...found, myRole });
+    },
+
+    join: (scheduleId, currentUserId) => {
+      mockLog('schedules.join', scheduleId, currentUserId);
+      const db = load();
+      const found = db.schedules.find(s => s.id === Number(scheduleId));
+      if (!found) return fail(`Schedule not found: ${scheduleId}`);
+
+      const already = found.participants?.some(
+        p => p.userId === currentUserId && p.status === 'ACTIVE'
+      );
+      if (already) return fail('이미 참여 중인 일정입니다.');
+      if (found.creatorId === currentUserId) return fail('본인이 개설한 일정입니다.');
+
+      const u = db.users.find(x => x.id === currentUserId);
+      found.participants.push({
+        id: Date.now(),
+        scheduleId: found.id,
+        userId: currentUserId,
+        role: 'PARTICIPANT',
+        status: 'ACTIVE',
+        canceledAt: null,
+        user: u ? { id: u.id, name: u.name, gender: u.gender, status: u.status } : null,
+        profile: u?.profile
+          ? { mbti: u.profile.mbti, introduction: u.profile.introduction, profileImageUrl: u.profile.profileImageUrl }
+          : null,
+      });
+      found.currentParticipants += 1;
+
+      save(db);
+      return ok({ ...found, myRole: 'PARTICIPANT' });
+    },
+
+    leave: (scheduleId, currentUserId) => {
+      mockLog('schedules.leave', scheduleId, currentUserId);
+      const db = load();
+      const found = db.schedules.find(s => s.id === Number(scheduleId));
+      if (!found) return fail(`Schedule not found: ${scheduleId}`);
+
+      const idx = found.participants?.findIndex(
+        p => p.userId === currentUserId && p.status === 'ACTIVE'
+      );
+      if (idx == null || idx === -1) return fail('참여 중인 일정이 아닙니다.');
+
+      found.participants.splice(idx, 1);
+      found.currentParticipants = Math.max(0, found.currentParticipants - 1);
+
+      save(db);
+      return ok({ ...found, myRole: null });
     },
 
     update: (id, patch) => {
