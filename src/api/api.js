@@ -131,6 +131,25 @@ export const api = {
     },
   },
 
+  statusShares: {
+    upsert: (scheduleId, userId, payload) => {
+      if (IS_MOCK) return mockDb.statusShares.upsert(scheduleId, userId, payload);
+      return request(`/api/schedules/${scheduleId}/status-share`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    mine: (scheduleId, userId) => {
+      if (IS_MOCK) return mockDb.statusShares.mine(scheduleId, userId);
+      return request(`/api/schedules/${scheduleId}/status-share/mine`);
+    },
+    list: (scheduleId) => {
+      if (IS_MOCK) return mockDb.statusShares.list(scheduleId);
+      return request(`/api/schedules/${scheduleId}/status-share`);
+    },
+  },
+
+
   // 장소
   places: {
     list: () => {
