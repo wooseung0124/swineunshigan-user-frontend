@@ -101,10 +101,11 @@ export const api = {
       return request(`/api/schedules/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
     },
 
-    join: (id, currentUserId) => {
-      if (IS_MOCK) return mockDb.schedules.join(Number(id), currentUserId);
+    join: (id, currentUserId, currentUserGender) => {
+      if (IS_MOCK) return mockDb.schedules.join(Number(id), currentUserId, currentUserGender);
       return request(`/api/schedules/${id}/join`, { method: 'POST' });
     },
+
     leave: (id, currentUserId) => {
       if (IS_MOCK) return mockDb.schedules.leave(Number(id), currentUserId);
       return request(`/api/schedules/${id}/leave`, { method: 'DELETE' });

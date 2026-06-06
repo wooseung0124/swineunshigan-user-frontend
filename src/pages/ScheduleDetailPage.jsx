@@ -43,6 +43,7 @@ export default function ScheduleDetailPage() {
   const { id } = useParams();
   const user = useAuthStore(selectUser);
   const currentUserId = user?.id;
+  const currentUserGender = user?.gender; 
 
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -142,7 +143,7 @@ const joinButtonLabel =
   : '참여하기';
 
 const handleJoin = () => {
-  api.schedules.join(id, currentUserId)
+  api.schedules.join(id, currentUserId, currentUserGender)
     .then(() => { loadAll(); })
     .catch(err => { alert(err.message || '참여에 실패했습니다.'); });
 };

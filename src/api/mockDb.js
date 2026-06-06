@@ -207,7 +207,7 @@ function generateSeed() {
       title: '점심 같이 먹어요',
       description: '간단히 점심 같이 하실 분 모집합니다.',
       category: 'MEAL',
-      genderCondition: 'ANY',
+      genderCondition: 'FEMALE_ONLY',
       maxParticipants: 3,
       status: 'PENDING',
       canceledAt: null,
@@ -382,18 +382,59 @@ export const mockDb = {
       return ok({ ...found, myRole });
     },
 
-    join: (scheduleId, currentUserId) => {
+    join: (scheduleId, currentUserId, currentUserGender) => {
       mockLog('schedules.join', scheduleId, currentUserId);
       const db = load();
       const found = db.schedules.find(s => s.id === Number(scheduleId));
-      if (!found) return fail(`Schedule not found: ${scheduleId}`);
+      if (!found) return fail('일정을 찾을 수 없습니다.');
 
+      // ③ 본인 개설 일정
+      if (found.creatorId === currentUserId) return fail('본인이 개설한 일정입니다.');
+
+      // ② 이미 참여 중
       const already = found.participants?.some(
         p => p.userId === currentUserId && p.status === 'ACTIVE'
       );
       if (already) return fail('이미 참여 중인 일정입니다.');
-      if (found.creatorId === currentUserId) return fail('본인이 개설한 일정입니다.');
 
+      // ⑤ 모집 상태 (PENDING만)
+      if (found.status !== 'PENDING') return fail('모집이 종료된 일정입니다.');
+
+      // ④ 정원
+      if (found.currentParticipants >= found.maxParticipants) {
+        return fail('모집 인원이 찼습니다.');
+      }
+
+      // ⑥ 성별 조건
+      if (found.genderCondition === 'MALE_ONLY' && currentUserGender !== 'MALE') {
+        return fail('성별 제한이 있습니다.');
+      }
+      if (found.genderCondition === 'FEMALE_ONLY' && currentUserGender !== 'FEMALE') {
+        return fail('성별 제한이 있습니다.');
+      }
+
+      // ⑦ 동일 날 개설 이력 + 시간 겹침 (앞뒤 3시간)
+      if (found.scheduledAt) {
+        const targetTime = new Date(found.scheduledAt).getTime();
+        const THREE_HOURS = 3 * 60 * 60 * 1000;
+        const mine = db.schedules.filter(s =>
+          s.id !== found.id &&
+          s.status !== 'CANCELED' &&
+          s.scheduledAt &&
+          (s.creatorId === currentUserId ||
+           s.participants?.some(p => p.userId === currentUserId && p.status === 'ACTIVE'))
+        );
+        const targetDate = found.scheduledAt.slice(0, 10);
+        const sameDayCreated = mine.some(s =>
+          s.creatorId === currentUserId && s.scheduledAt.slice(0, 10) === targetDate
+        );
+        if (sameDayCreated) return fail('같은 날 이미 개설한 일정이 있습니다.');
+        const overlap = mine.some(s =>
+          Math.abs(new Date(s.scheduledAt).getTime() - targetTime) < THREE_HOURS
+        );
+        if (overlap) return fail('같은 시간대에 참여 중인 일정이 있습니다.');
+      }
+      // ─── 검증 통과: 참여 처리 ───
       const u = db.users.find(x => x.id === currentUserId);
       found.participants.push({
         id: Date.now(),
