@@ -549,15 +549,54 @@ export default function CreateRoom() {
 
       {/* 완료 모달 */}
       {showComplete && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '85%', maxWidth: '400px', textAlign: 'center' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>🎉</div>
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '12px' }}>일정 개설 완료!</div>
-            <div style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>참여자들이 들어올 때까지 기다려주세요.</div>
-            <button onClick={() => navigate('/home')} style={{ width: '100%', padding: '12px', background: '#A8DC4F', borderRadius: '10px', border: 'none', fontWeight: '700', cursor: 'pointer' }}>닫기</button>
-          </div>
+  <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+    <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '85%', maxWidth: '400px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
+        <div style={{ fontSize: '18px', fontWeight: '700' }}>일정이 개설되었습니다</div>
+        <div style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>시간과 장소를 꼭 준수해주세요</div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+          <span style={{ color: '#999' }}>장소</span>
+          <span style={{ fontWeight: '500' }}>{placeName}</span>
         </div>
-      )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+          <span style={{ color: '#999' }}>일시</span>
+          <span style={{ fontWeight: '500' }}>
+            {selectedDate} {selectedTime.hour >= 12 ? '오후' : '오전'} {selectedTime.hour % 12 || 12}:{String(selectedTime.minute).padStart(2, '0')}
+          </span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+          <span style={{ color: '#999' }}>활동 유형</span>
+          <span style={{ fontWeight: '500' }}>{selectedCategory}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+          <span style={{ color: '#999' }}>모집 인원</span>
+          <span style={{ fontWeight: '500' }}>{maxParticipants}명</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/home')}
+          style={{ flex: 1, padding: '14px', background: '#f5f5f5', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
+        >
+          홈으로
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate('/schedule')}
+          style={{ flex: 1, padding: '14px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
+        >
+          일정 보러가기
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
