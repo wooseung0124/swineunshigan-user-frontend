@@ -74,7 +74,10 @@ export const api = {
 
   // 일정
   schedules: {
-    create: (data) => request('/api/schedules', { method: 'POST', body: JSON.stringify(data) }),
+    create: (data, currentUserId) => {
+      if (IS_MOCK) return mockDb.schedules.create(data, currentUserId);
+      return request('/api/schedules', { method: 'POST', body: JSON.stringify(data) });
+    },
 
     list: (filters = {}) => {
       if (IS_MOCK) return mockDb.schedules.list();

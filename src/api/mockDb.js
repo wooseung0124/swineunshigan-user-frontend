@@ -357,6 +357,56 @@ export const mockDb = {
       mockLog('schedules.list');
       return ok(load().schedules);
     },
+    create: (data, currentUserId) => {
+      mockLog('schedules.create', data, currentUserId);
+      const db = load();
+
+      const newId = db.schedules.length
+        ? Math.max(...db.schedules.map(s => s.id)) + 1
+        : 1;
+
+      const u = db.users.find(x => x.id === currentUserId);
+
+      const newSchedule = {
+        id: newId,
+        creatorId: currentUserId,
+        placeId: data.place?.id ?? null,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        scheduledAt: data.scheduledAt,
+        genderCondition: data.genderCondition,
+        maxParticipants: data.maxParticipants,
+        status: 'PENDING',
+        canceledAt: null,
+        place: {
+          id: data.place?.id ?? null,
+          name: data.place?.name ?? '',
+          address: data.place?.address ?? '',
+        },
+        participants: [
+          {
+            id: Date.now(),
+            scheduleId: newId,
+            userId: currentUserId,
+            role: 'CREATOR',
+            status: 'ACTIVE',
+            canceledAt: null,
+            user: u ? { id: u.id, name: u.name, gender: u.gender, status: u.status } : null,
+            profile: u?.profile
+              ? { mbti: u.profile.mbti, introduction: u.profile.introduction, profileImageUrl: u.profile.profileImageUrl }
+              : null,
+          },
+        ],
+        currentParticipants: 1,
+        myRole: 'CREATOR',
+      };
+
+      db.schedules.push(newSchedule);
+      save(db);
+      return ok(newSchedule);
+    },
+
     listByPlace: (placeId) => {
       mockLog('schedules.listByPlace', placeId);
       return ok(load().schedules.filter(s => s.placeId === Number(placeId)));

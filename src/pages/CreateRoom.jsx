@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuthStore, selectUser } from '../store/authStore';
+import { api } from '../api/api';
 
 const CATEGORY_OPTIONS = ['식사', '스터디', '문화활동', '스포츠', '기타'];
 const GENDER_OPTIONS = [
@@ -63,9 +65,20 @@ export default function CreateRoom() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
 
+  const currentUserId = useAuthStore.getState().user?.id;
+
+  const [policyAgreed, setPolicyAgreed] = useState(false);
+  const [showPolicyDetail, setShowPolicyDetail] = useState(false);
+
+  const [policyChecked, setPolicyChecked] = useState(false);    // 체크박스
+  const [policyDetailAgreed, setPolicyDetailAgreed] = useState(false);  // 자세히보기 동의
+  const canConfirm = policyChecked && policyDetailAgreed;
+
+
   const genderLabel = GENDER_OPTIONS.find(g => g.value === genderLimit)?.label || '무관';
 
   const handleSubmit = () => {
+    document.activeElement?.blur();
     if (!title) {
       alert('제목을 입력해주세요.');
       return;
@@ -74,9 +87,36 @@ export default function CreateRoom() {
   };
 
   const handleConfirm = () => {
-    console.log({ placeName, title, selectedDate, selectedTime, activityPlan, selectedCategory, maxParticipants, genderLimit });
-    setShowConfirm(false);
-    setShowComplete(true);
+    // 한글 카테고리 → 영문 enum
+    const categoryMap = {
+      '식사': 'MEAL',
+      '스터디': 'STUDY',
+      '문화활동': 'CULTURAL',
+      '스포츠': 'EXERCISE',
+      '기타': 'ETC',
+    };
+    // 시간 객체 → "HH:mm"
+    const hh = String(selectedTime.hour).padStart(2, '0');
+    const mm = String(selectedTime.minute).padStart(2, '0');
+  
+    const data = {
+      title,
+      description: activityPlan,
+      category: categoryMap[selectedCategory] || 'ETC',
+      scheduledAt: `${selectedDate} ${hh}:${mm}`,
+      genderCondition: genderLimit.toUpperCase(),  // any → ANY
+      maxParticipants,
+      place: { name: placeName, address: placeAddress },
+    };
+  
+    api.schedules.create(data, currentUserId)
+      .then(() => {
+        setShowConfirm(false);
+        setShowComplete(true);
+      })
+      .catch(err => {
+        alert(err.message || '일정 개설에 실패했습니다.');
+      });
   };
 
   const chipStyle = (isActive) => ({
@@ -149,6 +189,9 @@ export default function CreateRoom() {
             style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' }}
           />
         </div>
+
+
+
 
         {/* 활동 소개 */}
         <div style={{ marginBottom: '16px' }}>
@@ -330,6 +373,7 @@ export default function CreateRoom() {
 
         {/* 일정 개설하기 */}
         <button
+          type="button"
           onClick={handleSubmit}
           style={{
             width: '100%',
@@ -406,23 +450,102 @@ export default function CreateRoom() {
         </>
       )}
 
-      {/* 동의 모달 */}
-      {showConfirm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '85%', maxWidth: '400px' }}>
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '12px' }}>서비스 운영 방침 안내</div>
-            <div style={{ fontSize: '13px', color: '#666', lineHeight: '20px', marginBottom: '20px' }}>
-              • 다른 참여자에게 불쾌감을 주는 행위를 금지합니다.<br />
-              • 약속 시간을 준수해주세요.<br />
-              • 무단 불참 시 패널티가 부과될 수 있습니다.
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setShowConfirm(false)} style={{ flex: 1, padding: '12px', background: '#f5f5f5', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>취소</button>
-              <button onClick={handleConfirm} style={{ flex: 1, padding: '12px', background: '#A8DC4F', borderRadius: '10px', border: 'none', fontWeight: '700', cursor: 'pointer' }}>동의하기</button>
-            </div>
-          </div>
-        </div>
-      )}
+{showConfirm && (
+  <>
+    {/* 뒤 회색 오버레이 — 누르면 닫힘 */}
+    <div
+      onClick={() => setShowConfirm(false)}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000 }}
+    />
+    {/* 하단 sliding-up 패널 */}
+    <div style={{
+      position: 'fixed', left: 0, right: 0, bottom: 0,
+      background: '#fff',
+      borderRadius: '16px 16px 0 0',
+      padding: '24px',
+      zIndex: 1001,
+      animation: 'slideUp 0.3s ease',
+    }}>
+      <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px' }}>
+        서비스 운영 방침 동의 안내
+      </div>
+      <div style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>
+        서비스 운영 방침에 동의해야 일정을 개설할 수 있어요.
+      </div>
+
+      {/* 체크 + 자세히 보기 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
+        <input
+          type="checkbox"
+          checked={policyChecked}
+          onChange={(e) => setPolicyChecked(e.target.checked)}
+        />
+          [필수] 서비스 운영 방침 동의
+        </label>
+        <button
+          onClick={() => setShowPolicyDetail(true)}
+          style={{ background: 'none', border: 'none', color: '#666', fontSize: '13px', textDecoration: 'underline', cursor: 'pointer' }}
+        >
+          자세히 보기
+        </button>
+      </div>
+
+      {/* 닫기 / 동의하기 */}
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button
+          onClick={() => setShowConfirm(false)}
+          style={{ flex: 1, padding: '14px', background: '#f5f5f5', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
+        >
+          닫기
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={!canConfirm}
+          style={{
+            flex: 1, padding: '14px',
+            background: canConfirm ? '#A8DC4F' : '#eee',
+            color: canConfirm ? '#000' : '#999',
+            border: 'none', borderRadius: '10px', fontWeight: '700',
+            cursor: canConfirm ? 'pointer' : 'not-allowed',
+          }}
+        >
+          동의하기
+        </button>
+      </div>
+    </div>
+  </>
+)}
+
+{/* 운영방침 안내창 (자세히 보기) */}
+{showPolicyDetail && (
+  <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100 }}>
+    <div style={{ background: '#fff', borderRadius: '16px', width: '90%', maxWidth: '420px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+      {/* 헤더 + X */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px' }}>
+        <button
+          onClick={() => setShowPolicyDetail(false)}
+          style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}
+        >
+          ✕
+        </button>
+      </div>
+      {/* 내용 (스크롤) — 피그마 이미지 자리 */}
+      <div style={{ overflowY: 'auto', padding: '0 20px 20px' }}>
+        <img src="/policy-image.png" alt="서비스 운영 방침 안내" style={{ width: '100%', display: 'block' }} />
+      </div>
+      {/* 동의하기 */}
+      <div style={{ padding: '16px 20px' }}>
+        <button
+          onClick={() => { setPolicyDetailAgreed(true); setShowPolicyDetail(false); }}
+          style={{ width: '100%', padding: '14px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
+        >
+          동의하기
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* 완료 모달 */}
       {showComplete && (
