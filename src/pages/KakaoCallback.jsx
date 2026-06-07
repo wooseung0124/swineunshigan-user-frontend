@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { isMockAuthEnabled, getMockAuthResponse } from '../config/oauth';
+import { promotePendingToUser } from '../utils/personality';
 
 export default function KakaoCallback() {
   const [searchParams] = useSearchParams();
@@ -29,6 +30,7 @@ export default function KakaoCallback() {
       const { token, user } = getMockAuthResponse('kakao');
       console.log('[MOCK AUTH] 카카오 로그인 (mock)', { code, user });
       login(token, user);
+      promotePendingToUser(user.id);  
       navigate('/home');
       return;
     }
@@ -42,6 +44,7 @@ export default function KakaoCallback() {
       .then(res => res.json())
       .then(({ token, user }) => {
         login(token, user);
+        promotePendingToUser(user.id);
         navigate('/home');
       })
       .catch(() => {

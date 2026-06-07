@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { verifyOAuthState, isMockAuthEnabled, getMockAuthResponse } from '../config/oauth';
+import { promotePendingToUser } from '../utils/personality';
 
 export default function NaverCallback() {
   const [searchParams] = useSearchParams();
@@ -39,6 +40,7 @@ export default function NaverCallback() {
       const { token, user } = getMockAuthResponse('naver');
       console.log('[MOCK AUTH] 네이버 로그인 (mock)', { code, user });
       login(token, user);
+      promotePendingToUser(user.id); 
       navigate('/home');
       return;
     }
@@ -52,6 +54,7 @@ export default function NaverCallback() {
       .then(res => res.json())
       .then(({ token, user }) => {
         login(token, user);
+        promotePendingToUser(user.id); 
         navigate('/home');
       })
       .catch(() => {

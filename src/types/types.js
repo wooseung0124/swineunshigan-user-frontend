@@ -43,6 +43,7 @@ export const SCHEDULE_CATEGORY = {
   ETC: 'ETC',
 };
 
+
 /** 일정 카테고리 표시용 한글 라벨 */
 export const SCHEDULE_CATEGORY_LABEL = {
   MEAL: '식사',
@@ -51,6 +52,57 @@ export const SCHEDULE_CATEGORY_LABEL = {
   CULTURAL: '문화활동',
   ETC: '기타',
 };
+
+/**
+ * 성향 테스트 - 연결 태도 (connection)
+ * 외부 test.html에서 복귀 URL ?connection= 으로 전달받는 코드.
+ * @see 02_성향테스트 명세
+ */
+export const PERSONALITY_CONNECTION = {
+  BM: 'BM',
+  BG: 'BG',
+  JM: 'JM',
+  GT: 'GT',
+  DS: 'DS',
+  GJ: 'GJ',
+};
+
+// TODO(기획/외부 확인): 코드별 한글 유형명 미수령 — 받으면 값만 채울 것
+// 코드별 한글 유형명 (용어사전 '필드명' 시트, 승우님 6/7)
+export const PERSONALITY_CONNECTION_LABEL = {
+  BM: '시간경계형',
+  BG: '가치중심형',
+  JM: '자연접근형',
+  GT: '관계탐색형',
+  DS: '행동동행형',
+  GJ: '속도조율형',
+};
+
+/**
+ * 성향 테스트 - 사고 방식 (think)
+ * 외부 test.html에서 복귀 URL ?think= 으로 전달받는 코드.
+ * @see 02_성향테스트 명세
+ */
+export const PERSONALITY_THINK = {
+  ESSENCE: 'ESSENCE',
+  CONDITION: 'CONDITION',
+  DEFINITION: 'DEFINITION',
+  INTUITION: 'INTUITION',
+  RESPONSIBILITY: 'RESPONSIBILITY',
+  EVALUATION: 'EVALUATION',
+};
+
+// 코드별 한글 유형명 (용어사전 '필드명' 시트, 승우님 6/7)
+export const PERSONALITY_THINK_LABEL = {
+  ESSENCE: '본질',
+  CONDITION: '조건',
+  DEFINITION: '정의',
+  INTUITION: '직관',
+  RESPONSIBILITY: '책임',
+  EVALUATION: '평가',
+};
+
+
 
 /** 일정 상태 */
 export const SCHEDULE_STATUS = {

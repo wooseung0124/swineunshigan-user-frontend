@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { verifyOAuthState, isMockAuthEnabled, getMockAuthResponse } from '../config/oauth';
+import { promotePendingToUser } from '../utils/personality';
 
 // 구글 OAuth 콜백
 // 백엔드 엔드포인트: POST /api/auth/google/callback  body: { code, state }
@@ -40,6 +41,7 @@ export default function GoogleCallback() {
       const { token, user } = getMockAuthResponse('google');
       console.log('[MOCK AUTH] 구글 로그인 (mock)', { code, user });
       login(token, user);
+      promotePendingToUser(user.id);
       navigate('/home');
       return;
     }
@@ -53,6 +55,7 @@ export default function GoogleCallback() {
       .then(res => res.json())
       .then(({ token, user }) => {
         login(token, user);
+        promotePendingToUser(user.id);
         navigate('/home');
       })
       .catch(() => {
