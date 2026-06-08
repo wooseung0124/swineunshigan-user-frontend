@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
 
-const MBTI_OPTIONS = [
-  'INTJ', 'INTP', 'ENTJ', 'ENTP',
-  'INFJ', 'INFP', 'ENFJ', 'ENFP',
-  'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
-  'ISTP', 'ISFP', 'ESTP', 'ESFP',
-];
+// const MBTI_OPTIONS = [
+//   'INTJ', 'INTP', 'ENTJ', 'ENTP',
+//   'INFJ', 'INFP', 'ENFJ', 'ENFP',
+//   'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
+//   'ISTP', 'ISFP', 'ESTP', 'ESFP',
+// ];
+// 우히히 mbti 는 믿을께 못되지 우히히힣ㅎㅎㅎㅎ 없애 버리깃!!!
 
 export default function ProfileEditPage() {
   const navigate = useNavigate();
@@ -15,7 +16,6 @@ export default function ProfileEditPage() {
   const [email, setEmail] = useState('');      // 추가
   const [gender, setGender] = useState('');
   const [birthDate, setBirthDate] = useState('');
-  const [mbti, setMbti] = useState('');
   const [introduction, setIntroduction] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +27,7 @@ export default function ProfileEditPage() {
         setEmail(u.email ?? '');                    // 추가 (top-level)
         setGender(u.gender ?? '');
         setBirthDate(u.profile?.birthDate ?? '');
-        setMbti(u.profile?.mbti ?? '');
+        //setMbti(u.profile?.mbti ?? '');
         setIntroduction(u.profile?.introduction ?? '');
       })
       .catch((err) => {
@@ -43,7 +43,6 @@ export default function ProfileEditPage() {
       gender,
       profile: {
         birthDate,
-        mbti,
         introduction,
       },
     })
@@ -142,7 +141,7 @@ export default function ProfileEditPage() {
           />
         </div>
 
-        {/* MBTI */}
+        {/* MBTI
         <div style={{ marginBottom: '16px' }}>
           <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>MBTI</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -165,7 +164,7 @@ export default function ProfileEditPage() {
               </button>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* 자기소개 */}
         <div style={{ marginBottom: '16px' }}>
