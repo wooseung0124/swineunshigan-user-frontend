@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../api/api';
 
 const MBTI_OPTIONS = [
   'INTJ', 'INTP', 'ENTJ', 'ENTP',
@@ -10,16 +11,46 @@ const MBTI_OPTIONS = [
 
 export default function ProfileEditPage() {
   const navigate = useNavigate();
-  const [name, setName] = useState('김진우');
-  const [mbti, setMbti] = useState('INFP');
-  const [introduction, setIntroduction] = useState('음악과 책을 좋아하는 프론트엔드 개발자입니다.');
-  const [soloActivity, setSoloActivity] = useState('카페에서 책 읽기');
-  const [challengeProject, setChallengeProject] = useState('쉬는시간 서비스 개발');
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [mbti, setMbti] = useState('');
+  const [introduction, setIntroduction] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // 마운트 시 본인 정보 로드 (하드코딩 제거)
+  useEffect(() => {
+    api.users.me()
+      .then((u) => {
+        setName(u.name ?? '');
+        setGender(u.gender ?? '');                  // top-level
+        setBirthDate(u.profile?.birthDate ?? '');   // profile
+        setMbti(u.profile?.mbti ?? '');
+        setIntroduction(u.profile?.introduction ?? '');
+      })
+      .catch((err) => {
+        console.error('프로필 로드 실패:', err);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleSave = () => {
-    console.log({ name, mbti, introduction, soloActivity, challengeProject });
-    alert('프로필이 업데이트되었습니다.');
-    navigate(-1);
+    api.users.update({
+      name,
+      gender,                          // top-level
+      profile: {
+        birthDate,                     // profile
+        mbti,
+        introduction,
+      },
+    })
+      .then(() => {
+        alert('프로필이 업데이트되었습니다.');
+        navigate(-1);
+      })
+      .catch((err) => {
+        alert(err.message || '저장에 실패했습니다.');
+      });
   };
 
   return (
@@ -42,7 +73,7 @@ export default function ProfileEditPage() {
           display: 'flex', justifyContent: 'center', alignItems: 'center',
           fontSize: '32px', fontWeight: '700', color: '#000',
         }}>
-          {name[0]}
+          {name[0] || '?'}
         </div>
         <button style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ddd', background: '#fff', fontSize: '13px', cursor: 'pointer' }}>📷 사진 변경</button>
       </div>
@@ -57,6 +88,43 @@ export default function ProfileEditPage() {
             onChange={e => setName(e.target.value)}
             placeholder="이름을 입력하세요"
             style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {/* 성별 */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>성별</div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {[{ value: 'MALE', label: '남성' }, { value: 'FEMALE', label: '여성' }].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setGender(opt.value)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: gender === opt.value ? '1px solid #A8DC4F' : '1px solid #ddd',
+                  background: gender === opt.value ? '#A8DC4F20' : '#fff',
+                  color: gender === opt.value ? '#5DA80E' : '#666',
+                  fontSize: '14px',
+                  fontWeight: gender === opt.value ? '700' : '400',
+                  cursor: 'pointer',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 생년월일 */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>생년월일</div>
+          <input
+            type="date"
+            value={birthDate}
+            onChange={e => setBirthDate(e.target.value)}
+            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit' }}
           />
         </div>
 
@@ -96,31 +164,6 @@ export default function ProfileEditPage() {
             style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
           />
           <div style={{ color: '#999', fontSize: '11px', textAlign: 'right', marginTop: '4px' }}>{introduction.length}/200</div>
-        </div>
-
-        {/* 혼자서 주로 하는 활동 */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>혼자서 주로 하는 활동</div>
-          <input
-            type="text"
-            value={soloActivity}
-            onChange={e => setSoloActivity(e.target.value)}
-            placeholder="예: 카페에서 책 읽기"
-            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' }}
-          />
-        </div>
-
-        {/* 나만의 프로젝트 */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>나만의 프로젝트</div>
-          <textarea
-            value={challengeProject}
-            onChange={e => setChallengeProject(e.target.value)}
-            placeholder="도전 중인 프로젝트가 있나요?"
-            maxLength={150}
-            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
-          />
-          <div style={{ color: '#999', fontSize: '11px', textAlign: 'right', marginTop: '4px' }}>{challengeProject.length}/150</div>
         </div>
       </div>
     </div>
