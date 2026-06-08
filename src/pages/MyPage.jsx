@@ -1,21 +1,21 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-
-const DUMMY_USER = {
-  name: '김진우',
-  gender: '남성',
-  birthDate: '1995-12-09',
-  email: 'juston1207@kakao.com',
-  mbti: 'INFP',
-  introduction: '음악듣는것을 좋아하는 프론트엔드 개발자입니다.',
-  soloActivity: '카페에서 넷플,크론치롤 보기',
-  challengeProject: '쉬는시간 서비스 개발',
-};
+import { api } from '../api/api';
 
 export default function MyPage() {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
-  const user = DUMMY_USER;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 본인 정보 로드 (하드코딩 제거)
+  useEffect(() => {
+    api.users.me()
+      .then((u) => setUser(u))
+      .catch((err) => console.error('마이페이지 로드 실패:', err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleLogout = () => {
     if (confirm('정말 로그아웃 하시겠습니까?')) {
@@ -30,6 +30,24 @@ export default function MyPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <p style={{ color: '#999' }}>불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <p style={{ color: '#999' }}>정보를 불러오지 못했습니다.</p>
+      </div>
+    );
+  }
+
+  const genderLabel = user.gender === 'MALE' ? '남성' : user.gender === 'FEMALE' ? '여성' : '-';
+
   return (
     <div style={{ minHeight: '100vh', background: '#fff', color: '#000' }}>
       <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
@@ -43,10 +61,9 @@ export default function MyPage() {
           background: '#A8DC4F', display: 'flex', justifyContent: 'center', alignItems: 'center',
           margin: '0 auto 12px', fontSize: '32px', fontWeight: '700', color: '#000',
         }}>
-          {user.name[0]}
+          {user.name?.[0] || '?'}
         </div>
-        <div style={{ fontSize: '20px', fontWeight: '700', marginBottom: '4px', color: '#000' }}>{user.name}</div>
-        <div style={{ color: '#5DA80E', fontSize: '14px', marginBottom: '16px', fontWeight: '600' }}>{user.mbti}</div>
+        <div style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#000' }}>{user.name}</div>
         <button
           onClick={() => navigate('/profile-edit')}
           style={{
@@ -63,29 +80,20 @@ export default function MyPage() {
         <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>기본 정보</div>
         {[
           { label: '이메일', value: user.email },
-          { label: '성별', value: user.gender },
-          { label: '생년월일', value: user.birthDate },
+          { label: '성별', value: genderLabel },
+          { label: '생년월일', value: user.profile?.birthDate },
         ].map(item => (
           <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
             <span style={{ color: '#666', fontSize: '14px' }}>{item.label}</span>
-            <span style={{ color: '#000', fontSize: '14px', fontWeight: '500' }}>{item.value}</span>
+            <span style={{ color: '#000', fontSize: '14px', fontWeight: '500' }}>{item.value || '-'}</span>
           </div>
         ))}
       </div>
 
+      {/* 자기소개 */}
       <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
         <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '10px' }}>자기소개</div>
-        <div style={{ color: '#333', fontSize: '14px', lineHeight: '22px' }}>{user.introduction}</div>
-      </div>
-
-      <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
-        <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '10px' }}>혼자서 주로 하는 활동</div>
-        <div style={{ color: '#333', fontSize: '14px', lineHeight: '22px' }}>{user.soloActivity}</div>
-      </div>
-
-      <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
-        <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '10px' }}>나만의 프로젝트</div>
-        <div style={{ color: '#333', fontSize: '14px', lineHeight: '22px' }}>{user.challengeProject}</div>
+        <div style={{ color: '#333', fontSize: '14px', lineHeight: '22px' }}>{user.profile?.introduction || '아직 작성하지 않았어요.'}</div>
       </div>
 
       {/* 메뉴 */}
