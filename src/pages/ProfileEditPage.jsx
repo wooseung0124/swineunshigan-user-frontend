@@ -12,6 +12,7 @@ const MBTI_OPTIONS = [
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');      // 추가
   const [gender, setGender] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [mbti, setMbti] = useState('');
@@ -23,8 +24,9 @@ export default function ProfileEditPage() {
     api.users.me()
       .then((u) => {
         setName(u.name ?? '');
-        setGender(u.gender ?? '');                  // top-level
-        setBirthDate(u.profile?.birthDate ?? '');   // profile
+        setEmail(u.email ?? '');                    // 추가 (top-level)
+        setGender(u.gender ?? '');
+        setBirthDate(u.profile?.birthDate ?? '');
         setMbti(u.profile?.mbti ?? '');
         setIntroduction(u.profile?.introduction ?? '');
       })
@@ -37,9 +39,10 @@ export default function ProfileEditPage() {
   const handleSave = () => {
     api.users.update({
       name,
-      gender,                          // top-level
+      email,                           // 추가 (top-level)
+      gender,
       profile: {
-        birthDate,                     // profile
+        birthDate,
         mbti,
         introduction,
       },
@@ -88,6 +91,17 @@ export default function ProfileEditPage() {
             onChange={e => setName(e.target.value)}
             placeholder="이름을 입력하세요"
             style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {/* 이메일 (소셜 로그인 값, 읽기전용) */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>이메일</div>
+          <input
+            type="email"
+            value={email}
+            readOnly
+            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', background: '#f5f5f5', color: '#888', cursor: 'not-allowed' }}
           />
         </div>
 

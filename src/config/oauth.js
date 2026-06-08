@@ -144,6 +144,7 @@ const MOCK_USERS = {
   kakao: {
     id: 101,
     name: '김진우',
+    email: 'jinwoo@kakao.com',
     gender: 'MALE',
     status: 'ACTIVE',
     withdrawalDate: null,
@@ -151,6 +152,7 @@ const MOCK_USERS = {
   naver: {
     id: 102,
     name: '이수민',
+    email: 'sumin@naver.com',
     gender: 'FEMALE',
     status: 'ACTIVE',
     withdrawalDate: null,
@@ -158,6 +160,7 @@ const MOCK_USERS = {
   google: {
     id: 103,
     name: '박지수',
+    email: 'jisu@gmail.com',
     gender: 'FEMALE',
     status: 'ACTIVE',
     withdrawalDate: null,

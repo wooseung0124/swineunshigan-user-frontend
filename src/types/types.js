@@ -195,6 +195,7 @@ export const ATTENDANCE_STATUS = {
  * @typedef {Object} User
  * @property {number} id
  * @property {string} name
+ * @property {string} email - 소셜 로그인에서 수신 (수정 가능)
  * @property {keyof typeof GENDER} gender
  * @property {keyof typeof USER_STATUS} status
  * @property {string|null} withdrawalDate - ISO datetime (ERD: withdrawl_date)

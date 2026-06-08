@@ -150,19 +150,19 @@ function generateSeed() {
   // ----- Users (mock auth 3종 + 일정 참여자 4종) -----
   const users = [
     {
-      id: 101, name: '김진우', gender: 'MALE', status: 'ACTIVE', withdrawalDate: null,
+      id: 101, name: '김진우', email: 'jinwoo@kakao.com', gender: 'MALE', status: 'ACTIVE', withdrawalDate: null,
       profile: { birthDate: '1995-12-09', profileImageUrl: null, mbti: 'INFP', introduction: '음악과 책을 좋아하는 프론트엔드 개발자입니다.', activity: '카페에서 책 읽기' },
     },
     {
-      id: 102, name: '이수민', gender: 'FEMALE', status: 'ACTIVE', withdrawalDate: null,
+      id: 102, name: '이수민', email: 'sumin@naver.com', gender: 'FEMALE', status: 'ACTIVE', withdrawalDate: null,
       profile: { birthDate: '1997-05-20', profileImageUrl: null, mbti: 'ENFJ', introduction: '사람 만나는 거 좋아해요.', activity: '카페 투어' },
     },
     {
-      id: 103, name: '박지수', gender: 'FEMALE', status: 'ACTIVE', withdrawalDate: null,
+      id: 103, name: '박지수', email: 'jisu@gmail.com', gender: 'FEMALE', status: 'ACTIVE', withdrawalDate: null,
       profile: { birthDate: '1998-09-03', profileImageUrl: null, mbti: 'ISFJ', introduction: '맛집 탐방을 좋아해요.', activity: '점심 메이트 찾기' },
     },
     {
-      id: 104, name: '내목업', gender: 'MALE', status: 'ACTIVE', withdrawalDate: null,
+      id: 104, name: '내목업', email: 'mockuser@example.com', gender: 'MALE', status: 'ACTIVE', withdrawalDate: null,
       profile: { birthDate: '1999-02-11', profileImageUrl: null, mbti: 'ENTP', introduction: '뭐든 일단 시도파.', activity: '신규 카페 탐방' },
     },
   ];
@@ -591,6 +591,58 @@ export const mockDb = {
     },
   },
 
+
+  // ===========================================================
+  // statusShares (이동 소식)
+  // ===========================================================
+  statusShares: {
+    // 내 현황 전송/갱신 (upsert)
+    upsert: (scheduleId, userId, payload) => {
+      mockLog('statusShares.upsert', scheduleId, userId, payload);
+      const db = load();
+      const now = new Date().toISOString();
+      const existing = db.statusShares.find(
+        s => s.scheduleId === Number(scheduleId) && s.userId === userId
+      );
+      if (existing) {
+        existing.moveStatus = payload.moveStatus;
+        existing.statusText = payload.statusText ?? null;
+        existing.distance = payload.distance ?? null;  // 실제 거리는 백엔드 계산
+        existing.updatedAt = now;
+        save(db);
+        return ok(existing);
+      }
+      const created = {
+        id: Date.now(),
+        scheduleId: Number(scheduleId),
+        userId,
+        moveStatus: payload.moveStatus,
+        statusText: payload.statusText ?? null,
+        distance: payload.distance ?? null,
+        updatedAt: now,
+      };
+      db.statusShares.push(created);
+      save(db);
+      return ok(created);
+    },
+
+    // 내 현황 조회 (페이지 재접속 시)
+    mine: (scheduleId, userId) => {
+      mockLog('statusShares.mine', scheduleId, userId);
+      const db = load();
+      const found = db.statusShares.find(
+        s => s.scheduleId === Number(scheduleId) && s.userId === userId
+      );
+      return ok(found || null);
+    },
+
+    // 일정 전체 현황 목록
+    list: (scheduleId) => {
+      mockLog('statusShares.list', scheduleId);
+      const db = load();
+      return ok(db.statusShares.filter(s => s.scheduleId === Number(scheduleId)));
+    },
+  },
   // ===========================================================
   // places
   // ===========================================================
