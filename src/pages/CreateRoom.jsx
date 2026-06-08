@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore, selectUser } from '../store/authStore';
 import { api } from '../api/api';
+import { SCHEDULE_CATEGORY, SCHEDULE_CATEGORY_LABEL } from '../types/types';
 
-const CATEGORY_OPTIONS = ['식사', '스터디', '문화활동', '스포츠', '기타'];
+const CATEGORY_OPTIONS = Object.keys(SCHEDULE_CATEGORY).map(key => ({
+  value: key,                          // enum 키 (MEAL, EXERCISE...)
+  label: SCHEDULE_CATEGORY_LABEL[key], // 한글 (식사, 스포츠...)
+}));
 const GENDER_OPTIONS = [
   { value: 'any', label: '무관' },
   { value: 'male_only', label: '남자' },
@@ -52,9 +56,10 @@ export default function CreateRoom() {
   const placeName = place?.name || place?.place_name || '프리모바치오바치 홍대본점';
   const placeAddress = place?.address || place?.road_address_name || '서울특별시 마포구 홍익로 2길 27-22';
 
+  
   const [title, setTitle] = useState('');
   const [activityPlan, setActivityPlan] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('식사');
+  const [selectedCategory, setSelectedCategory] = useState(SCHEDULE_CATEGORY.MEAL);
   const [selectedDate, setSelectedDate] = useState(DATES[0].iso);
   const [selectedTime, setSelectedTime] = useState({ hour: 8, minute: 30 });
   const [genderLimit, setGenderLimit] = useState('any');
@@ -88,13 +93,7 @@ export default function CreateRoom() {
 
   const handleConfirm = () => {
     // 한글 카테고리 → 영문 enum
-    const categoryMap = {
-      '식사': 'MEAL',
-      '스터디': 'STUDY',
-      '문화활동': 'CULTURAL',
-      '스포츠': 'EXERCISE',
-      '기타': 'ETC',
-    };
+    
     // 시간 객체 → "HH:mm"
     const hh = String(selectedTime.hour).padStart(2, '0');
     const mm = String(selectedTime.minute).padStart(2, '0');
@@ -102,7 +101,7 @@ export default function CreateRoom() {
     const data = {
       title,
       description: activityPlan,
-      category: categoryMap[selectedCategory] || 'ETC',
+      category: selectedCategory,
       scheduledAt: `${selectedDate} ${hh}:${mm}`,
       genderCondition: genderLimit.toUpperCase(),  // any → ANY
       maxParticipants,
@@ -210,8 +209,8 @@ export default function CreateRoom() {
         <div style={{ marginBottom: '16px' }}>
           <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>활동 유형</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {CATEGORY_OPTIONS.map(cat => (
-              <button key={cat} onClick={() => setSelectedCategory(cat)} style={chipStyle(selectedCategory === cat)}>{cat}</button>
+          {CATEGORY_OPTIONS.map(cat => (
+              <button key={cat.value} onClick={() => setSelectedCategory(cat.value)} style={chipStyle(selectedCategory === cat.value)}>{cat.label}</button>
             ))}
           </div>
         </div>
@@ -570,7 +569,7 @@ export default function CreateRoom() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
           <span style={{ color: '#999' }}>활동 유형</span>
-          <span style={{ fontWeight: '500' }}>{selectedCategory}</span>
+          <span style={{ fontWeight: '500' }}>{SCHEDULE_CATEGORY_LABEL[selectedCategory]}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
           <span style={{ color: '#999' }}>모집 인원</span>

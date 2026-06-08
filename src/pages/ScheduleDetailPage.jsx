@@ -142,12 +142,23 @@ const joinButtonLabel =
   : schedule.status !== 'PENDING' ? '모집 종료'
   : '참여하기';
 
-const handleJoin = () => {
-  api.schedules.join(id, currentUserId, currentUserGender)
-    .then(() => { loadAll(); })
-    .catch(err => { alert(err.message || '참여에 실패했습니다.'); });
-};
+  const handleJoin = () => {
+    // 1단계: 로그인
+    if (!currentUserId) {
+      navigate('/login');
+      return;
+    }
+  
+    // 2단계: 권한 3종 (TODO: User에 권한 필드 없음 - 추가 후 구현)
+    // 3단계: 프로필 상세 작성 (TODO: 완료 플래그 없음 - 성향 테스트 연동 대기)
+  
+    // 4~7단계: mock(백엔드) 검증 → 통과 시 참여
+    api.schedules.join(id, currentUserId, currentUserGender)
+      .then(() => { loadAll(); })
+      .catch(err => { alert(err.message || '참여에 실패했습니다.'); });
+  };
 
+  
   // 매칭 인증 활성화 계산
   const appointmentMs = new Date(schedule.scheduledAt).getTime();
   const msUntilAppointment = appointmentMs - Date.now();
@@ -384,7 +395,7 @@ const handleJoin = () => {
         <div style={{ marginBottom: '20px' }}>
           <div style={{ color: '#888', fontSize: '13px', marginBottom: '8px' }}>📅 약속 시간</div>
           <div style={{ color: '#000', fontSize: '16px', fontWeight: '600' }}>
-            {formatDateTime(schedule.dateTime)}
+            {formatDateTime(schedule.scheduledAt)}
           </div>
         </div>
 

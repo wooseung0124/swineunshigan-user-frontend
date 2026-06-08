@@ -48,7 +48,7 @@ export const SCHEDULE_CATEGORY = {
 export const SCHEDULE_CATEGORY_LABEL = {
   MEAL: '식사',
   STUDY: '스터디',
-  EXERCISE: '운동',
+  EXERCISE: '스포츠',
   CULTURAL: '문화활동',
   ETC: '기타',
 };
