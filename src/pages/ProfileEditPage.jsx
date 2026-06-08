@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
+import { getPersonality } from '../utils/personality';
+import { PERSONALITY_CONNECTION_LABEL, PERSONALITY_THINK_LABEL } from '../types/types';
 
 // const MBTI_OPTIONS = [
 //   'INTJ', 'INTP', 'ENTJ', 'ENTP',
@@ -10,6 +12,11 @@ import { api } from '../api/api';
 // ];
 // 우히히 mbti 는 믿을께 못되지 우히히힣ㅎㅎㅎㅎ 없애 버리깃!!!
 
+// 성향 테스트 외부 랜딩 진입점 (요엘님 6/7 확정). 경로 바뀌면 여기만 수정.
+const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
+
+
+
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -17,6 +24,7 @@ export default function ProfileEditPage() {
   const [gender, setGender] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [introduction, setIntroduction] = useState('');
+  const [personality, setPersonality] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // 마운트 시 본인 정보 로드 (하드코딩 제거)
@@ -29,6 +37,7 @@ export default function ProfileEditPage() {
         setBirthDate(u.profile?.birthDate ?? '');
         //setMbti(u.profile?.mbti ?? '');
         setIntroduction(u.profile?.introduction ?? '');
+        setPersonality(getPersonality(u.id)); 
       })
       .catch((err) => {
         console.error('프로필 로드 실패:', err);
@@ -165,6 +174,38 @@ export default function ProfileEditPage() {
             ))}
           </div>
         </div> */}
+
+        {/* 이향인 성향 */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>이향인 성향</div>
+          {personality ? (
+            <div style={{ padding: '12px', borderRadius: '10px', border: '1px solid #ddd', background: '#fafafa' }}>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#5DA80E', marginBottom: '4px' }}>
+                {PERSONALITY_CONNECTION_LABEL[personality.connection] || personality.connection}
+                {' · '}
+                {PERSONALITY_THINK_LABEL[personality.think] || personality.think}
+              </div>
+              <div style={{ fontSize: '12px', color: '#999' }}>이향인 성향 테스트 결과예요. (30일에 한 번 변경 가능)</div>
+            </div>
+          ) : (
+            <div style={{ padding: '12px', borderRadius: '10px', border: '1px dashed #ddd', background: '#fafafa', color: '#666', fontSize: '13px' }}>
+              아직 성향 테스트를 하지 않으셨어요.
+            </div>
+          )}
+          <button
+            onClick={() => { window.location.href = PERSONALITY_TEST_URL; }}
+            style={{
+              width: '100%', marginTop: '8px', padding: '12px', borderRadius: '10px',
+              border: 'none', background: '#A8DC4F', color: '#000',
+              fontSize: '14px', fontWeight: '700', cursor: 'pointer',
+            }}
+          >
+            {personality ? '성향 테스트 다시 하기' : '성향 테스트 하러 가기'}
+          </button>
+        </div>
+
+
+
 
         {/* 자기소개 */}
         <div style={{ marginBottom: '16px' }}>
