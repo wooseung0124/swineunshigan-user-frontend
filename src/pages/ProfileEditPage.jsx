@@ -1,225 +1,225 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
-import { getPersonality } from '../utils/personality';
-import { PERSONALITY_CONNECTION_LABEL, PERSONALITY_THINK_LABEL } from '../types/types';
+import CameraIcon from '../components/icons/CameraIcon';
 
-// const MBTI_OPTIONS = [
-//   'INTJ', 'INTP', 'ENTJ', 'ENTP',
-//   'INFJ', 'INFP', 'ENFJ', 'ENFP',
-//   'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
-//   'ISTP', 'ISFP', 'ESTP', 'ESFP',
-// ];
-// 우히히 mbti 는 믿을께 못되지 우히히힣ㅎㅎㅎㅎ 없애 버리깃!!!
-
-// 성향 테스트 외부 랜딩 진입점 (요엘님 6/7 확정). 경로 바뀌면 여기만 수정.
-const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
-
-
+/**
+ * 프로필 수정 (2안 분리 확정 / 승우님)
+ * - 시안: ← 프로필 수정 / 완료(우측) / 아바타+카메라 / 닉네임 입력
+ * - 닉네임 = 모델에 필드 없음 → mock 진행 (백엔드 재아님 대기)
+ * - 성별 수정은 한솔님 디자인 나오면 추가 (승우님 추가요청)
+ * - 사진: 갤러리/카메라 = 파일선택→미리보기(브라우저 objectURL). 서버 업로드는 베타 후.
+ *         기본 이미지로 설정 = 미리보기 비우기.
+ * - 하단 네비 없음(Layout 밖)
+ */
 
 export default function ProfileEditPage() {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');      // 추가
-  const [gender, setGender] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [introduction, setIntroduction] = useState('');
-  const [personality, setPersonality] = useState(null);
+  const [nickname, setNickname] = useState('');
+  const [photoPreview, setPhotoPreview] = useState(null); // objectURL (미리보기용, 서버 저장 X)
+  const [photoSheet, setPhotoSheet] = useState(false);     // 사진 변경 팝업 열림
   const [loading, setLoading] = useState(true);
+  const fileInputRef = useRef(null);
 
-  // 마운트 시 본인 정보 로드 (하드코딩 제거)
   useEffect(() => {
     api.users.me()
       .then((u) => {
-        setName(u.name ?? '');
-        setEmail(u.email ?? '');                    // 추가 (top-level)
-        setGender(u.gender ?? '');
-        setBirthDate(u.profile?.birthDate ?? '');
-        //setMbti(u.profile?.mbti ?? '');
-        setIntroduction(u.profile?.introduction ?? '');
-        setPersonality(getPersonality(u.id)); 
+        setNickname(u.nickname ?? u.name ?? '');
+        if (u.profileImageUrl) setPhotoPreview(u.profileImageUrl);
       })
-      .catch((err) => {
-        console.error('프로필 로드 실패:', err);
-      })
+      .catch((err) => console.error('프로필 로드 실패:', err))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSave = () => {
-    api.users.update({
-      name,
-      email,                           // 추가 (top-level)
-      gender,
-      profile: {
-        birthDate,
-        introduction,
-      },
-    })
-      .then(() => {
-        alert('프로필이 업데이트되었습니다.');
-        navigate(-1);
-      })
-      .catch((err) => {
-        alert(err.message || '저장에 실패했습니다.');
-      });
+  // objectURL 메모리 정리 (미리보기 바뀌거나 언마운트 시)
+  useEffect(() => {
+    return () => {
+      if (photoPreview?.startsWith?.('blob:')) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  const handleComplete = () => {
+    // mock 저장. 백엔드 nickname/profileImageUrl 필드 생기면 페이로드에 반영.
+    api.users.update({ nickname })
+      .then(() => navigate(-1))
+      .catch((err) => alert(err.message || '저장에 실패했습니다.'));
   };
 
+  const openFilePicker = () => {
+    setPhotoSheet(false);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // 브라우저 미리보기만. 실제 업로드는 베타 후(profileImageUrl 백엔드 연동).
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+    e.target.value = ''; // 같은 파일 다시 선택 가능하게 초기화
+  };
+
+  const handleResetPhoto = () => {
+    setPhotoPreview(null);
+    setPhotoSheet(false);
+  };
+
+  if (loading) {
+    return (
+      <div style={S.center}>
+        <p style={{ color: 'var(--color-text-light-gray)' }}>불러오는 중...</p>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: '#fff' }}>
+    <div style={S.page}>
       {/* 헤더 */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '12px',
-        padding: '16px', borderBottom: '1px solid #eee',
-      }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'transparent', border: 'none', fontSize: '24px', fontWeight: '700', color: '#000', cursor: 'pointer' }}>←</button>
-        <h1 style={{ flex: 1, fontSize: '18px', fontWeight: '700', color: '#000' }}>프로필 수정</h1>
-        <button onClick={handleSave} style={{ background: 'transparent', border: 'none', color: '#5DA80E', fontSize: '15px', fontWeight: '700', cursor: 'pointer' }}>저장</button>
+      <div style={S.header}>
+        <button onClick={() => navigate(-1)} style={S.backBtn} aria-label="뒤로가기">←</button>
+        <h1 style={S.headerTitle}>프로필 수정</h1>
+        <button onClick={handleComplete} style={S.completeBtn}>완료</button>
       </div>
 
-      {/* 프로필 사진 */}
-      <div style={{ padding: '24px', textAlign: 'center', borderBottom: '1px solid #eee' }}>
-        <div style={{
-          width: '80px', height: '80px', borderRadius: '50%',
-          background: '#A8DC4F', margin: '0 auto 12px',
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          fontSize: '32px', fontWeight: '700', color: '#000',
-        }}>
-          {name[0] || '?'}
-        </div>
-        <button style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #ddd', background: '#fff', fontSize: '13px', cursor: 'pointer' }}>📷 사진 변경</button>
-      </div>
-
-      <div style={{ padding: '16px' }}>
-        {/* 이름 */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>이름</div>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="이름을 입력하세요"
-            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' }}
-          />
-        </div>
-
-        {/* 이메일 (소셜 로그인 값, 읽기전용) */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>이메일</div>
-          <input
-            type="email"
-            value={email}
-            readOnly
-            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', background: '#f5f5f5', color: '#888', cursor: 'not-allowed' }}
-          />
-        </div>
-
-        {/* 성별 */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>성별</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {[{ value: 'MALE', label: '남성' }, { value: 'FEMALE', label: '여성' }].map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setGender(opt.value)}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '10px',
-                  border: gender === opt.value ? '1px solid #A8DC4F' : '1px solid #ddd',
-                  background: gender === opt.value ? '#A8DC4F20' : '#fff',
-                  color: gender === opt.value ? '#5DA80E' : '#666',
-                  fontSize: '14px',
-                  fontWeight: gender === opt.value ? '700' : '400',
-                  cursor: 'pointer',
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
+      {/* 아바타 + 카메라 */}
+      <div style={S.avatarSection}>
+        <div style={S.avatarWrap}>
+          <div style={S.avatar}>
+            {photoPreview
+              ? <img src={photoPreview} alt="프로필" style={S.avatarImg} />
+              : <PersonIcon />}
           </div>
-        </div>
-
-        {/* 생년월일 */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>생년월일</div>
-          <input
-            type="date"
-            value={birthDate}
-            onChange={e => setBirthDate(e.target.value)}
-            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit' }}
-          />
-        </div>
-
-        {/* MBTI
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>MBTI</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {MBTI_OPTIONS.map(option => (
-              <button
-                key={option}
-                onClick={() => setMbti(option)}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '20px',
-                  border: mbti === option ? '1px solid #A8DC4F' : '1px solid #ddd',
-                  background: mbti === option ? '#A8DC4F20' : '#fff',
-                  color: mbti === option ? '#5DA80E' : '#666',
-                  fontSize: '12px',
-                  fontWeight: mbti === option ? '700' : '400',
-                  cursor: 'pointer',
-                }}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div> */}
-
-        {/* 이향인 성향 */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>이향인 성향</div>
-          {personality ? (
-            <div style={{ padding: '12px', borderRadius: '10px', border: '1px solid #ddd', background: '#fafafa' }}>
-              <div style={{ fontSize: '15px', fontWeight: '700', color: '#5DA80E', marginBottom: '4px' }}>
-                {PERSONALITY_CONNECTION_LABEL[personality.connection] || personality.connection}
-                {' · '}
-                {PERSONALITY_THINK_LABEL[personality.think] || personality.think}
-              </div>
-              <div style={{ fontSize: '12px', color: '#999' }}>이향인 성향 테스트 결과예요. (30일에 한 번 변경 가능)</div>
-            </div>
-          ) : (
-            <div style={{ padding: '12px', borderRadius: '10px', border: '1px dashed #ddd', background: '#fafafa', color: '#666', fontSize: '13px' }}>
-              아직 성향 테스트를 하지 않으셨어요.
-            </div>
-          )}
-          <button
-            onClick={() => { window.location.href = PERSONALITY_TEST_URL; }}
-            style={{
-              width: '100%', marginTop: '8px', padding: '12px', borderRadius: '10px',
-              border: 'none', background: '#A8DC4F', color: '#000',
-              fontSize: '14px', fontWeight: '700', cursor: 'pointer',
-            }}
-          >
-            {personality ? '성향 테스트 다시 하기' : '성향 테스트 하러 가기'}
+          <button onClick={() => setPhotoSheet(true)} style={S.cameraBadge} aria-label="프로필 사진 변경">
+            <CameraIcon size={26} />
           </button>
         </div>
+      </div>
 
-
-
-
-        {/* 자기소개 */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>자기소개</div>
-          <textarea
-            value={introduction}
-            onChange={e => setIntroduction(e.target.value)}
-            placeholder="자신을 소개해보세요 (200자 이내)"
-            maxLength={200}
-            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
+      {/* 닉네임 */}
+      <div style={S.body}>
+        <label style={S.label}>닉네임</label>
+        <div style={S.inputWrap}>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="닉네임을 입력하세요"
+            style={S.input}
           />
-          <div style={{ color: '#999', fontSize: '11px', textAlign: 'right', marginTop: '4px' }}>{introduction.length}/200</div>
+          {nickname && (
+            <button onClick={() => setNickname('')} style={S.clearBtn} aria-label="지우기">✕</button>
+          )}
         </div>
       </div>
+
+      {/* 숨김 파일 입력 (갤러리/카메라 공용) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+
+      {/* 사진 변경 팝업 (시안: 카메라/갤러리/기본이미지로 설정) */}
+      {photoSheet && (
+        <div style={S.overlay} onClick={() => setPhotoSheet(false)}>
+          <div style={S.sheet} onClick={(e) => e.stopPropagation()}>
+            <div style={S.sheetTitle}>프로필 사진</div>
+            {/* 카메라: PC 웹은 capture 무의미해 갤러리와 동일하게 파일선택. 모바일 웹은 카메라 열림 */}
+            <button onClick={openFilePicker} style={S.sheetItem}>카메라</button>
+            <button onClick={openFilePicker} style={S.sheetItem}>갤러리</button>
+            <button onClick={handleResetPhoto} style={S.sheetItem}>기본 이미지로 설정</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+/** 기본 아바타 실루엣 */
+function PersonIcon() {
+  return (
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="var(--color-text-light-gray)" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" />
+    </svg>
+  );
+}
+
+const S = {
+  page: { minHeight: '100vh', background: 'var(--color-background)', color: 'var(--color-text)' },
+  center: { minHeight: '100vh', background: 'var(--color-background)', display: 'flex', justifyContent: 'center', alignItems: 'center' },
+
+  header: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: 'var(--spacing-4)', borderBottom: '1px solid var(--color-border-light)',
+  },
+  backBtn: {
+    background: 'transparent', border: 'none', fontSize: 'var(--font-size-heading-1)',
+    fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text)', cursor: 'pointer',
+    width: '24px', padding: 0, lineHeight: 1, textAlign: 'left',
+  },
+  headerTitle: {
+    fontSize: 'var(--font-size-heading-3)', fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-text)', margin: 0,
+  },
+  completeBtn: {
+    background: 'transparent', border: 'none', color: 'var(--color-primary-dark)',
+    fontSize: 'var(--font-size-body-lg)', fontWeight: 'var(--font-weight-bold)', cursor: 'pointer',
+    padding: 0,
+  },
+
+  avatarSection: { padding: 'var(--spacing-6) var(--spacing-4)', textAlign: 'center' },
+  avatarWrap: { position: 'relative', width: '80px', margin: '0 auto' },
+  avatar: {
+    width: '80px', height: '80px', borderRadius: 'var(--radius-round)',
+    background: 'var(--color-card-light)', display: 'flex', justifyContent: 'center', alignItems: 'center',
+    overflow: 'hidden',
+  },
+  avatarImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  cameraBadge: {
+    position: 'absolute', right: '-2px', bottom: '-2px',
+    background: 'transparent', border: 'none', padding: 0,
+    cursor: 'pointer', lineHeight: 0,
+  },
+
+  body: { padding: '0 var(--spacing-4)' },
+  label: {
+    display: 'block', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-medium)',
+    color: 'var(--color-text)', marginBottom: 'var(--spacing-2)',
+  },
+  inputWrap: { position: 'relative', display: 'flex', alignItems: 'center' },
+  input: {
+    width: '100%', padding: 'var(--spacing-3)', paddingRight: 'var(--spacing-10)',
+    borderRadius: 'var(--radius-base)', border: '1px solid var(--color-border)',
+    fontSize: 'var(--font-size-body)', boxSizing: 'border-box',
+    fontFamily: 'inherit', color: 'var(--color-text)',
+  },
+  clearBtn: {
+    position: 'absolute', right: 'var(--spacing-3)',
+    background: 'var(--color-text-light-gray)', border: 'none', borderRadius: 'var(--radius-round)',
+    width: '18px', height: '18px', color: 'var(--color-background)',
+    fontSize: '10px', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center',
+    padding: 0, lineHeight: 1,
+  },
+
+  // 사진 변경 팝업
+  overlay: {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+  },
+  sheet: {
+    width: '80%', maxWidth: '320px', background: 'var(--color-background)',
+    borderRadius: 'var(--radius-lg)', padding: 'var(--spacing-5) var(--spacing-4)',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+  },
+  sheetTitle: {
+    fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-text)', marginBottom: 'var(--spacing-3)',
+  },
+  sheetItem: {
+    display: 'block', width: '100%', textAlign: 'left',
+    padding: 'var(--spacing-3) 0', background: 'transparent', border: 'none',
+    fontSize: 'var(--font-size-body-lg)', color: 'var(--color-text)', cursor: 'pointer',
+  },
+};

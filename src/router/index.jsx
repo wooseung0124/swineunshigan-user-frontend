@@ -20,6 +20,8 @@ import BookmarkPage from '../pages/BookmarkPage';
 import SettingsPage from '../pages/SettingsPage';
 import WithdrawalPage from '../pages/WithdrawalPage';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
+import ProfilePage from '../pages/ProfilePage';
+import PersonalityPage from '../pages/PersonalityPage';
 
 function PrivateRoute({ children }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
@@ -46,6 +48,8 @@ export default function Router() {
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
         <Route path="/notifications" element={<PrivateRoute><Layout><NotificationsPage /></Layout></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+        <Route path="/personality" element={<PrivateRoute><PersonalityPage /></PrivateRoute>} />
         <Route path="/profile-edit" element={<PrivateRoute><Layout><ProfileEditPage /></Layout></PrivateRoute>} />
 
         {/* 미구현 골격 (디자인 시안 수령 후 본격 구현) */}

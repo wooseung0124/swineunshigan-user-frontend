@@ -149,7 +149,6 @@ export const api = {
     },
   },
 
-
   // 장소
   places: {
     list: () => {

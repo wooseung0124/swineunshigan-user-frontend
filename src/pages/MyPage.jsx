@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../api/api';
+import BellIcon from '../components/icons/BellIcon';
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -9,7 +10,6 @@ export default function MyPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 본인 정보 로드 (하드코딩 제거)
   useEffect(() => {
     api.users.me()
       .then((u) => setUser(u))
@@ -24,97 +24,141 @@ export default function MyPage() {
     }
   };
 
-  const handleWithdraw = () => {
-    if (confirm('정말 탈퇴 하시겠습니까?')) {
-      alert('탈퇴 처리됨');
-    }
-  };
-
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <p style={{ color: '#999' }}>불러오는 중...</p>
+      <div style={S.center}>
+        <p style={{ color: 'var(--color-text-light-gray)' }}>불러오는 중...</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <p style={{ color: '#999' }}>정보를 불러오지 못했습니다.</p>
+      <div style={S.center}>
+        <p style={{ color: 'var(--color-text-light-gray)' }}>정보를 불러오지 못했습니다.</p>
       </div>
     );
   }
 
-  const genderLabel = user.gender === 'MALE' ? '남성' : user.gender === 'FEMALE' ? '여성' : '-';
+  // 메뉴: 설정만 라우트 연결. 나머지 3개는 시안 모양만(클릭 비활성, route는 6/10 이후).
+  const menus = [
+    { label: '공지사항', to: null },
+    { label: '이용약관 및 정책', to: null },
+    { label: '결제내역', to: null },
+    { label: '설정', to: '/settings' },
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fff', color: '#000' }}>
-      <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
-        <h1 style={{ fontSize: '18px', fontWeight: '700', color: '#000', margin: 0 }}>마이페이지</h1>
+    <div style={S.page}>
+      {/* 헤더 */}
+      <div style={S.header}>
+        <button onClick={() => navigate(-1)} style={S.backBtn} aria-label="뒤로가기">←</button>
+        <h1 style={S.headerTitle}>마이페이지</h1>
+        <button onClick={() => navigate('/notifications')} style={S.bellBtn} aria-label="알림">
+  <BellIcon size={22} color="var(--color-text)" />
+</button>
       </div>
 
-      {/* 프로필 영역 */}
-      <div style={{ padding: '24px', textAlign: 'center', borderBottom: '1px solid #eee' }}>
-        <div style={{
-          width: '80px', height: '80px', borderRadius: '50%',
-          background: '#A8DC4F', display: 'flex', justifyContent: 'center', alignItems: 'center',
-          margin: '0 auto 12px', fontSize: '32px', fontWeight: '700', color: '#000',
-        }}>
-          {user.name?.[0] || '?'}
+      {/* 프로필 영역 (통째 클릭 → /profile 보기) */}
+      <button onClick={() => navigate('/profile')} style={S.profileRow}>
+        <div style={S.avatar}>
+          {user.profileImageUrl
+            ? <img src={user.profileImageUrl} alt="프로필" style={S.avatarImg} />
+            : <PersonIcon />}
         </div>
-        <div style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#000' }}>{user.name}</div>
-        <button
-          onClick={() => navigate('/profile-edit')}
-          style={{
-            padding: '8px 20px', borderRadius: '20px', border: '1px solid #ddd',
-            background: '#fff', color: '#000', fontSize: '13px', cursor: 'pointer',
-          }}
-        >
-          프로필 수정
-        </button>
-      </div>
+        <span style={S.profileName}>{user.name ? `${user.name}님` : '-'}</span>
+        <span style={S.chevron}>›</span>
+      </button>
 
-      {/* 기본 정보 */}
-      <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
-        <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>기본 정보</div>
-        {[
-          { label: '이메일', value: user.email },
-          { label: '성별', value: genderLabel },
-          { label: '생년월일', value: user.profile?.birthDate },
-        ].map(item => (
-          <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
-            <span style={{ color: '#666', fontSize: '14px' }}>{item.label}</span>
-            <span style={{ color: '#000', fontSize: '14px', fontWeight: '500' }}>{item.value || '-'}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* 자기소개 */}
-      <div style={{ padding: '16px', borderBottom: '1px solid #eee' }}>
-        <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '10px' }}>자기소개</div>
-        <div style={{ color: '#333', fontSize: '14px', lineHeight: '22px' }}>{user.profile?.introduction || '아직 작성하지 않았어요.'}</div>
-      </div>
+      <div style={S.divider} />
 
       {/* 메뉴 */}
-      <div style={{ padding: '0 16px', borderBottom: '1px solid #eee' }}>
-        {['📌 북마크 게시글', '🔔 알림 설정', '📢 공지사항', '📋 이용약관', '⚙️ 설정'].map(item => (
-          <div key={item} style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '14px 0', borderBottom: '1px solid #f5f5f5', cursor: 'pointer',
-          }}>
-            <span style={{ fontSize: '15px', color: '#000', fontWeight: '500' }}>{item}</span>
-            <span style={{ color: '#999', fontSize: '20px' }}>›</span>
-          </div>
+      <div style={S.menuList}>
+        {menus.map((m) => (
+          <button
+            key={m.label}
+            onClick={m.to ? () => navigate(m.to) : undefined}
+            disabled={!m.to}
+            style={{ ...S.menuItem, cursor: m.to ? 'pointer' : 'default' }}
+          >
+            <span style={S.menuLabel}>{m.label}</span>
+            <span style={S.chevron}>›</span>
+          </button>
         ))}
       </div>
 
-      {/* 로그아웃/탈퇴 */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', padding: '20px' }}>
-        <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#666', fontSize: '13px', cursor: 'pointer' }}>로그아웃</button>
-        <span style={{ color: '#ddd' }}>|</span>
-        <button onClick={handleWithdraw} style={{ background: 'transparent', border: 'none', color: '#666', fontSize: '13px', cursor: 'pointer' }}>회원 탈퇴</button>
-      </div>
+      {/* 로그아웃 */}
+      <button onClick={handleLogout} style={S.logout}>로그아웃</button>
     </div>
   );
 }
+
+/** 기본 아바타 실루엣 (사진 없을 때) */
+function PersonIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--color-text-light-gray)" aria-hidden="true">
+      <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" />
+    </svg>
+  );
+}
+
+const S = {
+  page: { minHeight: '100vh', background: 'var(--color-background)', color: 'var(--color-text)' },
+  center: { minHeight: '100vh', background: 'var(--color-background)', display: 'flex', justifyContent: 'center', alignItems: 'center' },
+
+  header: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: 'var(--spacing-4)', borderBottom: '1px solid var(--color-border-light)',
+  },
+  backBtn: {
+    background: 'transparent', border: 'none', fontSize: 'var(--font-size-heading-1)',
+    fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text)', cursor: 'pointer',
+    width: '28px', padding: 0, lineHeight: 1, textAlign: 'left',
+  },
+  headerTitle: {
+    fontSize: 'var(--font-size-heading-3)', fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-text)', margin: 0,
+  },
+  bellBtn: {
+    background: 'transparent', border: 'none', fontSize: 'var(--font-size-heading-3)',
+    cursor: 'pointer', width: '28px', padding: 0, textAlign: 'right',
+  },
+
+  profileRow: {
+    display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)',
+    width: '100%', padding: 'var(--spacing-5) var(--spacing-4)',
+    background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
+  },
+  avatar: {
+    width: '48px', height: '48px', borderRadius: 'var(--radius-round)',
+    background: 'var(--color-card-light)', display: 'flex', justifyContent: 'center', alignItems: 'center',
+    overflow: 'hidden', flexShrink: 0,
+  },
+  avatarImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  profileName: {
+    flex: 1, fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-semibold)',
+    color: 'var(--color-text)',
+  },
+
+  divider: { height: '8px', background: 'var(--color-card-light)' },
+
+  menuList: { padding: '0 var(--spacing-4)' },
+  menuItem: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    width: '100%', padding: 'var(--spacing-4) 0',
+    borderBottom: '1px solid var(--color-border-light)',
+    background: 'transparent', border: 'none', borderBottomWidth: '1px',
+    borderBottomStyle: 'solid', borderBottomColor: 'var(--color-border-light)',
+    textAlign: 'left',
+  },
+  menuLabel: { fontSize: 'var(--font-size-body-lg)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text)' },
+
+  chevron: { color: 'var(--color-text-light-gray)', fontSize: 'var(--font-size-heading-3)' },
+
+  logout: {
+    display: 'block', padding: 'var(--spacing-5) var(--spacing-4)',
+    background: 'transparent', border: 'none',
+    color: 'var(--color-text-gray)', fontSize: 'var(--font-size-body-lg)',
+    cursor: 'pointer', textAlign: 'left',
+  },
+};
