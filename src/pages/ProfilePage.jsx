@@ -93,7 +93,7 @@ export default function ProfilePage() {
         <div style={S.introBox}>
           {user.profile?.introduction
             ? <span style={{ color: 'var(--color-text)' }}>{user.profile.introduction}</span>
-            : <span style={{ color: 'var(--color-text-placeholder)' }}>아직 작성하지 않았어요.</span>}
+            : <span style={{ color: 'var(--color-text-placeholder)' }}>자신에 대해 설명해 주세요.</span>}
         </div>
       </div>
 
