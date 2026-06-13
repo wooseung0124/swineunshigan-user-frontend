@@ -75,6 +75,8 @@ export function captureFromUrl(userId = null) {
 
   const value = { connection, think, savedAt: new Date().toISOString() };
   writeKey(userId != null ? userKey(userId) : PENDING_KEY, value);
+  // 방금 테스트 복귀함 → 권한 팝업 띄울 신호 (HomePage에서 소비)
+  try { localStorage.setItem('resttime:permission:pending', 'true'); } catch (e) { console.warn(e); }
   stripUrlParams();
   return { connection, think };
 }

@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import locationIcon from '../components/icons/위치.svg';
+import cameraIcon from '../components/icons/카메라.svg';
+import galleryIcon from '../components/icons/갤러리.svg';
+import notificationIcon from '../components/icons/알림.svg';
 
-// 권한 항목 (갤러리는 안내만 — 실제 동작은 요엘님 확인 후)
+// 권한 항목 (시안 기준 + 요엘님 답: 알림 추가)
 const PERMISSIONS = [
-  { key: 'location', label: '위치', required: true, desc: '내 주변 일정과 장소를 보여드려요' },
-  { key: 'camera', label: '카메라', required: true, desc: '약속 장소에서 QR 코드로 인증해요' },
-  { key: 'gallery', label: '갤러리', required: false, desc: '프로필 사진을 등록할 때 사용해요' },
+  { key: 'location', icon: locationIcon, label: '정보', required: true, desc: '지도 확인, 약속 장소까지의 거리 안내, 주변 일정 추천' },
+  { key: 'camera', icon: cameraIcon, label: '카메라', required: true, desc: 'QR 인증 매칭' },
+  { key: 'gallery', icon: galleryIcon, label: '갤러리', required: false, desc: '프로필, 일정 개설 및 수정' },
+  { key: 'notification', icon: notificationIcon, label: '알림', required: false, desc: '일정 소식과 취소 안내 수신' },
 ];
 
-// 위치 권한 요청
 function requestLocation() {
   return new Promise((resolve) => {
-    if (!('geolocation' in navigator)) {
-      console.log('[권한] geolocation 미지원');
-      return resolve('unsupported');
-    }
+    if (!('geolocation' in navigator)) { console.log('[권한] geolocation 미지원'); return resolve('unsupported'); }
     navigator.geolocation.getCurrentPosition(
       () => { console.log('[권한] 위치 허용'); resolve('granted'); },
       (err) => { console.log('[권한] 위치 거부/실패:', err.code); resolve('denied'); },
@@ -23,15 +24,11 @@ function requestLocation() {
   });
 }
 
-// 카메라 권한 요청 (받자마자 스트림 정리)
 async function requestCamera() {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    console.log('[권한] getUserMedia 미지원');
-    return 'unsupported';
-  }
+  if (!navigator.mediaDevices?.getUserMedia) { console.log('[권한] getUserMedia 미지원'); return 'unsupported'; }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    stream.getTracks().forEach((t) => t.stop()); // 권한만 받고 즉시 끔
+    stream.getTracks().forEach((t) => t.stop());
     console.log('[권한] 카메라 허용');
     return 'granted';
   } catch (err) {
@@ -40,84 +37,126 @@ async function requestCamera() {
   }
 }
 
-export default function OnboardingPermissionPage() {
-  const navigate = useNavigate();
-  const [requesting, setRequesting] = useState(false);
+async function requestNotification() {
+  if (!('Notification' in window)) { console.log('[권한] Notification 미지원'); return 'unsupported'; }
+  try {
+    const result = await Notification.requestPermission();
+    console.log('[권한] 알림:', result);
+    return result;
+  } catch (err) {
+    console.log('[권한] 알림 실패:', err);
+    return 'denied';
+  }
+}
 
-  const handleConfirm = async () => {
-    if (requesting) return;
-    setRequesting(true);
-
-    // 순차 호출: 위치 → 카메라 (갤러리는 여기서 다루지 않음)
-    await requestLocation();
-    await requestCamera();
-
-    // 권한 결과와 무관하게 다음으로 진행 (거부해도 앱은 이용 가능, 추후 기능별 재요청)
-    navigate('/home');
-    setRequesting(false);
-  };
+export default function OnboardingPermissionPage({ onClose }) {
+    const navigate = useNavigate();
+    const [requesting, setRequesting] = useState(false);
+  
+    const finish = () => {
+      if (onClose) onClose();      // 팝업으로 쓰일 때: 그냥 닫기
+      else navigate('/home');      // 라우트로 쓰일 때: 메인 이동
+    };
+  
+    const handleAllow = async () => {
+      if (requesting) return;
+      setRequesting(true);
+      await requestLocation();
+      await requestCamera();
+      await requestNotification();
+      finish();
+      setRequesting(false);
+    };
+  
+    const handleSkip = () => finish();
+    // ... 나머지 동일
 
   return (
-    <div style={S.page}>
-      <div style={S.body}>
-        <h1 style={S.title}>편리한 쉬는시간 앱 사용을 위해<br />아래 권한을 허용해주세요</h1>
+    <div style={S.overlay}>
+      <div style={S.box}>
+        <button onClick={handleSkip} style={S.closeBtn} aria-label="닫기">✕</button>
+
+        <h2 style={S.title}>편리한 쉬는시간 앱 사용을 위해<br />아래 권한을 허용해주세요</h2>
 
         <ul style={S.list}>
           {PERMISSIONS.map((p) => (
             <li key={p.key} style={S.item}>
-              <div style={S.itemHead}>
-                <span style={S.itemLabel}>{p.label}</span>
-                <span style={p.required ? S.tagRequired : S.tagOptional}>
-                  {p.required ? '필수' : '선택'}
-                </span>
+              <div style={S.itemIcon}>
+                {p.icon ? <img src={p.icon} alt="" width={28} height={28} /> : <span style={{ fontSize: '22px' }}>🔔</span>}
               </div>
-              <p style={S.itemDesc}>{p.desc}</p>
+              <div style={S.itemBody}>
+                <div style={S.itemHead}>
+                  <span style={S.itemLabel}>{p.label}</span>
+                  <span style={p.required ? S.tagRequired : S.tagOptional}>
+                    ({p.required ? '필수' : '선택'})
+                  </span>
+                </div>
+                <p style={S.itemDesc}>{p.desc}</p>
+              </div>
             </li>
           ))}
         </ul>
-      </div>
 
-      <div style={S.footer}>
-        <button onClick={handleConfirm} style={S.confirmBtn} disabled={requesting}>
-          {requesting ? '권한 요청 중...' : '확인'}
-        </button>
+        <p style={S.notice}>
+          허용하지 않아도 앱 이용은 가능하나, 일부 서비스에 이용이 제한될 수 있습니다.
+        </p>
+
+        <div style={S.btnRow}>
+          <button onClick={handleSkip} style={S.cancelBtn} disabled={requesting}>취소</button>
+          <button onClick={handleAllow} style={S.allowBtn} disabled={requesting}>
+            {requesting ? '요청 중...' : '허용하기'}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 const S = {
-  page: {
-    minHeight: '100vh', background: 'var(--color-background)', color: 'var(--color-text)',
-    display: 'flex', flexDirection: 'column',
+  overlay: {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+    padding: 'var(--spacing-4)',
   },
-  body: { flex: 1, padding: 'var(--spacing-8) var(--spacing-6) 0' },
+  box: {
+    position: 'relative', background: 'var(--color-background)',
+    borderRadius: 'var(--radius-xl)', padding: 'var(--spacing-6)',
+    width: '100%', maxWidth: '340px', boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+  },
+  closeBtn: {
+    position: 'absolute', top: 'var(--spacing-4)', right: 'var(--spacing-4)',
+    background: 'transparent', border: 'none', fontSize: 'var(--font-size-heading-4)',
+    color: 'var(--color-text-light-gray)', cursor: 'pointer', padding: 0, lineHeight: 1,
+  },
   title: {
-    fontSize: 'var(--font-size-heading-2)', fontWeight: 'var(--font-weight-bold)',
-    color: 'var(--color-text)', lineHeight: 1.4, margin: 0, marginBottom: 'var(--spacing-8)',
+    fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-text)', lineHeight: 1.4, margin: 0,
+    marginBottom: 'var(--spacing-5)', paddingRight: 'var(--spacing-5)',
   },
-  list: { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-5)' },
-  item: {
-    padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border-light)', background: 'var(--color-card-light)',
+  list: { listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' },
+  item: { display: 'flex', gap: 'var(--spacing-3)', alignItems: 'flex-start' },
+  itemIcon: { flexShrink: 0, width: '28px', display: 'flex', justifyContent: 'center' },
+  itemBody: { flex: 1 },
+  itemHead: { display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' },
+  itemLabel: { fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text)' },
+  tagRequired: { fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-gray)' },
+  tagOptional: { fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-light-gray)' },
+  itemDesc: { margin: 0, fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-gray)', lineHeight: 1.4 },
+  notice: {
+    fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-light-gray)',
+    lineHeight: 1.4, margin: 0, marginTop: 'var(--spacing-5)', marginBottom: 'var(--spacing-4)',
   },
-  itemHead: { display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-1)' },
-  itemLabel: { fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text)' },
-  tagRequired: {
-    fontSize: 'var(--font-size-caption)', fontWeight: 'var(--font-weight-semibold)',
-    color: 'var(--color-primary-dark)', background: 'var(--color-primary-light)',
-    padding: '2px var(--spacing-2)', borderRadius: 'var(--radius-round)',
+  btnRow: { display: 'flex', gap: 'var(--spacing-2)' },
+  cancelBtn: {
+    flex: 1, padding: 'var(--spacing-3) 0', borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-border)', background: 'var(--color-background)',
+    color: 'var(--color-text-gray)', fontSize: 'var(--font-size-body)',
+    fontWeight: 'var(--font-weight-medium)', cursor: 'pointer',
   },
-  tagOptional: {
-    fontSize: 'var(--font-size-caption)', fontWeight: 'var(--font-weight-semibold)',
-    color: 'var(--color-text-gray)', background: 'var(--color-border-light)',
-    padding: '2px var(--spacing-2)', borderRadius: 'var(--radius-round)',
-  },
-  itemDesc: { margin: 0, fontSize: 'var(--font-size-body)', color: 'var(--color-text-gray)', lineHeight: 1.5 },
-  footer: { padding: 'var(--spacing-6) var(--spacing-6) var(--spacing-10)' },
-  confirmBtn: {
-    width: '100%', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)',
-    border: 'none', background: 'var(--color-primary)', color: 'var(--color-text)',
-    fontSize: 'var(--font-size-body-lg)', fontWeight: 'var(--font-weight-bold)', cursor: 'pointer',
+  allowBtn: {
+    flex: 1, padding: 'var(--spacing-3) 0', borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-primary-500)', background: 'var(--color-primary-500)',
+    color: 'var(--color-text-white)', fontSize: 'var(--font-size-body)',
+    fontWeight: 'var(--font-weight-bold)', cursor: 'pointer',
   },
 };

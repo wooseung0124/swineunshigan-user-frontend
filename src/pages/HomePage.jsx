@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import SlideUpPanel from '../components/common/SlideUpPanel';
 import FilterBar from '../components/common/FilterBar';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 import MapControlButton from '../components/map/MapControlButton';
+import OnboardingPermissionPage from './OnboardingPermissionPage';
 
 const containerStyle = {
   width: '100%',
@@ -105,6 +106,15 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   const navigate = useNavigate();
   const [hoveredPlace, setHoveredPlace] = useState(null);
+
+  const [showPermission, setShowPermission] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('resttime:permission:pending') === 'true') {
+      localStorage.removeItem('resttime:permission:pending');
+      setShowPermission(true);
+    }
+  }, []);
 
   const onLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
@@ -287,9 +297,13 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
       </div>
 
       <SlideUpPanel
-  place={detailPlace}
-  onClose={() => setDetailPlace(null)}  
-/>
+        place={detailPlace}
+        onClose={() => setDetailPlace(null)}
+      />
+
+      {showPermission && (
+        <OnboardingPermissionPage onClose={() => setShowPermission(false)} />
+      )}
     </div>
   );
 }

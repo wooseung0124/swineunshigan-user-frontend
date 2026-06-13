@@ -57,6 +57,19 @@
   --color-status-completed: #4CAF50;
   --color-status-cancelled: #ff3b30;
 
+/* Primary green scale (디자인팀 확정) */
+--color-primary-100: #F1F7E8;  /* 1 가장 연함 */
+--color-primary-200: #DDEBC5;  /* 2 */
+--color-primary-300: #C6DEA1;  /* 3 */
+--color-primary-400: #B0D17B;  /* 4 */
+--color-primary-500: #9FC75E;  /* 5 ← 허용하기 버튼 */
+--color-primary-600: #8EBD41;  /* 6 */
+--color-primary-700: #7FAE3A;  /* 7 */
+--color-primary-800: #6B9A30;  /* 8 */
+--color-primary-900: #578627;  /* 9 */
+--color-primary-950: #356516;  /* 10 가장 진함 */
+
+
   /* -------------------------------------------------------------
      Font Size (1rem = 16px)
      -------------------------------------------------------------
