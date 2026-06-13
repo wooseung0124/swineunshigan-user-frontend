@@ -22,11 +22,29 @@ import WithdrawalPage from '../pages/WithdrawalPage';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 import ProfilePage from '../pages/ProfilePage';
 import PersonalityPage from '../pages/PersonalityPage';
+import OnboardingPage from '../pages/OnboardingPage';
+import OnboardingTestPage from '../pages/OnboardingTestPage';
+import OnboardingPermissionPage from '../pages/OnboardingPermissionPage';
+import { hasSeenOnboarding } from '../utils/onboarding';
+
 
 function PrivateRoute({ children }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   return isAuthenticated ? children : <Navigate to="/" />;
 }
+
+function RootEntry() {
+  // 온보딩 안 본 사람 → 온보딩으로. 본 사람 → 기존 로그인 흐름
+  if (!hasSeenOnboarding()) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  return (
+    <PublicRoute>
+      <LoginPage />
+    </PublicRoute>
+  );
+}
+
 
 function PublicRoute({ children }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
@@ -37,7 +55,7 @@ export default function Router() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/" element={<RootEntry />} />
         <Route path="/auth/naver/callback" element={<NaverCallback />} />
         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
@@ -51,6 +69,9 @@ export default function Router() {
         <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         <Route path="/personality" element={<PrivateRoute><PersonalityPage /></PrivateRoute>} />
         <Route path="/profile-edit" element={<PrivateRoute><Layout><ProfileEditPage /></Layout></PrivateRoute>} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/onboarding/test" element={<OnboardingTestPage />} />
+        <Route path="/onboarding/permission" element={<OnboardingPermissionPage />} />
 
         {/* 미구현 골격 (디자인 시안 수령 후 본격 구현) */}
         <Route path="/place/:id" element={<PlaceDetailPage />} />
