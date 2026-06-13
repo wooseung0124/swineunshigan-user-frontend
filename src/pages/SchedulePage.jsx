@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api/api';
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 import LoginRequiredModal from '../components/common/LoginRequiredModal';
 import ScheduleCard from '../components/schedule/ScheduleCard';
+import Toast from '../components/common/Toast';
 
 
 export default function SchedulePage() {
@@ -14,6 +15,16 @@ export default function SchedulePage() {
   const [statusFilter, setStatusFilter] = useState('all');  // all / PENDING / CANCELED
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const location = useLocation();
+  const [toast, setToast] = useState(location.state?.toast || null);
+
+
+  useEffect(() => {
+    if (location.state?.toast) {
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   useEffect(() => {
     let alive = true;
@@ -107,6 +118,13 @@ export default function SchedulePage() {
         <LoginRequiredModal
           open={loginModalOpen}
           onClose={() => setLoginModalOpen(false)}
+        />
+        
+        
+        <Toast
+          message={toast}
+          open={!!toast}
+          onDone={() => setToast(null)}
         />
       </div>
     );

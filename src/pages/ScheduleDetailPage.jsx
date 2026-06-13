@@ -2,9 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SCHEDULE_CATEGORY_LABEL, SCHEDULE_STATUS_LABEL } from '../types/types';
 import { api } from '../api/api';
+
 import QRDisplay from '../components/auth/QRDisplay';
 import QRScanner from '../components/auth/QRScanner';
 import { useAuthStore, selectUser } from '../store/authStore';
+import CancelScheduleModal from '../components/schedule/CancelScheduleModal';
 
 const STATUS_COLOR = {
   PENDING: '#FEE500',
@@ -45,9 +47,11 @@ export default function ScheduleDetailPage() {
   const currentUserId = user?.id;
   const currentUserGender = user?.gender; 
 
-  const [schedule, setSchedule] = useState(null);
-  const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState(null);
+  const location = useLocation();
+  const [toast, setToast] = useState(location.state?.toast || null);
+
 
   // QR 인증 관련 상태
   const [verifications, setVerifications] = useState([]);
@@ -56,6 +60,7 @@ export default function ScheduleDetailPage() {
 
   // 매칭 인증 활성화 판단을 위해 1분마다 리렌더 트리거
   const [, setTick] = useState(0);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   // 일정 상세 + 인증 기록 로드
   const loadAll = useCallback(() => {
@@ -148,16 +153,21 @@ const joinButtonLabel =
       navigate('/login');
       return;
     }
-  
-    // 2단계: 권한 3종 (TODO: User에 권한 필드 없음 - 추가 후 구현)
-    // 3단계: 프로필 상세 작성 (TODO: 완료 플래그 없음 - 성향 테스트 연동 대기)
-  
-    // 4~7단계: mock(백엔드) 검증 → 통과 시 참여
     api.schedules.join(id, currentUserId, currentUserGender)
       .then(() => { loadAll(); })
       .catch(err => { alert(err.message || '참여에 실패했습니다.'); });
   };
 
+  const handleCancel = async (reason) => {
+    await api.schedules.cancel(id, reason);
+    setCancelModalOpen(false);
+    navigate('/schedule', { state: { toast: '일정이 취소되었습니다' } });
+  };
+  
+// 2단계: 권한 3종 (TODO: User에 권한 필드 없음 - 추가 후 구현)
+    // 3단계: 프로필 상세 작성 (TODO: 완료 플래그 없음 - 성향 테스트 연동 대기)
+  
+  
   
   // 매칭 인증 활성화 계산
   const appointmentMs = new Date(schedule.scheduledAt).getTime();
@@ -505,6 +515,7 @@ const joinButtonLabel =
     </button>
     <button
       disabled={!isOwner}
+      onClick={() => setCancelModalOpen(true)} 
       style={{
         flex: 1,
         padding: '14px',
@@ -543,6 +554,12 @@ const joinButtonLabel =
     </button>
   </div>
 )}
+
+<CancelScheduleModal
+        open={cancelModalOpen}
+        onClose={() => setCancelModalOpen(false)}
+        onConfirm={handleCancel}
+      />
       </div>
     </div>
   );
