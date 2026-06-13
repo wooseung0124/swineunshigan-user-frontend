@@ -17,7 +17,6 @@ const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
  * 이향인 성향 테스트 결과 화면 (요엘님 확정)
  * - connection 섹션: 이름(LABEL) + 설명(DESC)
  * - think 섹션: 별칭(ALIAS) 제목 + 기본이름(LABEL) 배지 + 설명(DESC)
- * - 30일 제약: 후순위, 버튼 항상 활성
  * - 하단 네비 없음(Layout 밖)
  */
 
@@ -99,7 +98,6 @@ export default function PersonalityPage() {
           </>
         )}
 
-        <p style={S.notice}>*테스트는 30일마다 1회 새로 진행할 수 있어요.</p>
       </div>
     </div>
   );
@@ -169,8 +167,5 @@ const S = {
     background: 'var(--color-primary)', color: 'var(--color-text)',
     fontSize: 'var(--font-size-body-lg)', fontWeight: 'var(--font-weight-bold)', cursor: 'pointer',
   },
-  notice: {
-    marginTop: 'var(--spacing-3)', fontSize: 'var(--font-size-body-sm)',
-    color: 'var(--color-text-light-gray)',
-  },
+  
 };
