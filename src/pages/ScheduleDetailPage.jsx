@@ -45,12 +45,13 @@ export default function ScheduleDetailPage() {
   const { id } = useParams();
   const user = useAuthStore(selectUser);
   const currentUserId = user?.id;
-  const currentUserGender = user?.gender; 
+  const currentUserGender = user?.gender;
 
-
+  const [schedule, setSchedule] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const location = useLocation();
-  const [toast, setToast] = useState(location.state?.toast || null);
+
+  // QR 인증 관련 상태
 
 
   // QR 인증 관련 상태

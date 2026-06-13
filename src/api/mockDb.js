@@ -530,7 +530,7 @@ export const mockDb = {
       db.schedules[idx] = { ...db.schedules[idx], ...patch };
       save(db);
       return ok(db.schedules[idx]);
-    },
+    },    
 
     cancel: (id, reason) => {
       mockLog('schedules.cancel', { id, reason });
@@ -542,6 +542,20 @@ export const mockDb = {
         status: 'CANCELED',
         canceledAt: new Date().toISOString(),
         cancelReason: reason || null,
+      };
+      save(db);
+      return ok(db.schedules[idx]);
+    },
+    remove: (id) => {
+      mockLog('schedules.remove(hide)', { id });
+      const db = load();
+      const idx = db.schedules.findIndex(s => s.id === Number(id));
+      if (idx === -1) return fail(`Schedule not found: ${id}`);
+      // hard delete 아님 — 개설자 목록에서만 숨김 (일정 자체는 보존)
+      db.schedules[idx] = {
+        ...db.schedules[idx],
+        hiddenByCreator: true,
+        hiddenAt: new Date().toISOString(),
       };
       save(db);
       return ok(db.schedules[idx]);

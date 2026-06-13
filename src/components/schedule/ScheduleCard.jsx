@@ -7,9 +7,20 @@ const STATUS_COLOR = {
   CANCELED: '#ff3b30',
 };
 
+export default function ScheduleCard({
+  schedule,
+  onClick,
+  // 편집 모드 props (안 넘기면 기존 동작과 동일)
+  editMode = false,
+  selectable = false,
+  selecting = false, // ○ 단계 (선택됐지만 아직 ✓ 전)
+  selected = false,  // ✓ 단계
+}) {
+  // 편집 모드 + 아직 이 카드가 선택 안 됨 → 흐림
+  const dimmed = editMode && !selecting && !selected;
+  // 체크 자리 노출 여부 (선택돼서 ○ 또는 ✓ 상태)
+  const showCheck = editMode && selectable && (selecting || selected);
 
-
-export default function ScheduleCard({ schedule, onClick }) {
   return (
     <div
       onClick={() => onClick?.(schedule)}
@@ -20,7 +31,8 @@ export default function ScheduleCard({ schedule, onClick }) {
         borderRadius: '12px',
         marginBottom: '12px',
         cursor: 'pointer',
-        opacity: schedule.status === 'CANCELED' ? 0.6 : 1,
+        // 기존엔 취소면 0.6이었는데, 편집모드에선 dim 로직이 우선
+        opacity: editMode ? (dimmed ? 0.35 : 1) : (schedule.status === 'CANCELED' ? 0.6 : 1),
         transition: 'all 0.2s',
       }}
       onMouseOver={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'}
@@ -52,9 +64,25 @@ export default function ScheduleCard({ schedule, onClick }) {
         </span>
       </div>
 
-      <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '6px', color: '#000' }}>
-        {schedule.title}
-      </h3>
+      {/* 제목 줄: 체크 자리 + 제목 (선택되면 체크 크기만큼 옆으로 밀림) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+        {showCheck && (
+          <span style={{
+            flexShrink: 0,
+            width: '22px', height: '22px', borderRadius: '50%',
+            border: selected ? 'none' : '2px solid #ccc',
+            background: selected ? '#A8DC4F' : '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: '13px', fontWeight: '700',
+          }}>
+            {selected ? '✓' : ''}
+          </span>
+        )}
+        <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#000', margin: 0 }}>
+          {schedule.title}
+        </h3>
+      </div>
+
       <p style={{ fontSize: '13px', color: '#666', marginBottom: '4px' }}>
         📍 {schedule.place?.name}
       </p>

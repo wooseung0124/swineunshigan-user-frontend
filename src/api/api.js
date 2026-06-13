@@ -104,6 +104,13 @@ export const api = {
       return request(`/api/schedules/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
     },
 
+    remove: (id) => {
+      if (IS_MOCK) return mockDb.schedules.remove(id);
+      return request(`/api/schedules/${id}`, { method: 'DELETE' });
+    },
+
+
+
     join: (id, currentUserId, currentUserGender) => {
       if (IS_MOCK) return mockDb.schedules.join(Number(id), currentUserId, currentUserGender);
       return request(`/api/schedules/${id}/join`, { method: 'POST' });
