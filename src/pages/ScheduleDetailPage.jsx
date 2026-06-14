@@ -7,6 +7,7 @@ import QRDisplay from '../components/auth/QRDisplay';
 import QRScanner from '../components/auth/QRScanner';
 import { useAuthStore, selectUser } from '../store/authStore';
 import CancelScheduleModal from '../components/schedule/CancelScheduleModal';
+import ServicePolicyModal from '../components/schedule/ServicePolicyModal';
 
 const STATUS_COLOR = {
   PENDING: '#FEE500',
@@ -50,6 +51,8 @@ export default function ScheduleDetailPage() {
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [policyModalOpen, setPolicyModalOpen] = useState(false);
 
   // QR 인증 관련 상태
 
@@ -149,15 +152,19 @@ const joinButtonLabel =
   : '참여하기';
 
   const handleJoin = () => {
-    // 1단계: 로그인
     if (!currentUserId) {
       navigate('/login');
       return;
     }
-    api.schedules.join(id, currentUserId, currentUserGender)
-      .then(() => { loadAll(); })
-      .catch(err => { alert(err.message || '참여에 실패했습니다.'); });
+    setPolicyModalOpen(true); // 바로 join 대신 운영방침 모달부터
   };
+
+  // 운영방침 동의 → 결제 페이지로
+  const handlePolicyAgree = () => {
+    setPolicyModalOpen(false);
+    navigate(`/payment/${id}`);
+  };
+
 
   const handleCancel = async (reason) => {
     await api.schedules.cancel(id, reason);
@@ -560,6 +567,12 @@ const joinButtonLabel =
         open={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
         onConfirm={handleCancel}
+      />
+
+      <ServicePolicyModal
+        open={policyModalOpen}
+        onClose={() => setPolicyModalOpen(false)}
+        onAgree={handlePolicyAgree}
       />
       </div>
     </div>

@@ -26,6 +26,9 @@ import OnboardingPage from '../pages/OnboardingPage';
 import OnboardingTestPage from '../pages/OnboardingTestPage';
 import OnboardingPermissionPage from '../pages/OnboardingPermissionPage';
 import { hasSeenOnboarding } from '../utils/onboarding';
+import PaymentPage from '../pages/PaymentPage';
+
+
 
 
 function PrivateRoute({ children }) {
@@ -72,6 +75,7 @@ export default function Router() {
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/onboarding/test" element={<OnboardingTestPage />} />
         <Route path="/onboarding/permission" element={<OnboardingPermissionPage />} />
+        <Route path="/payment/:id" element={<PrivateRoute><PaymentPage /></PrivateRoute>} />
 
         {/* 미구현 골격 (디자인 시안 수령 후 본격 구현) */}
         <Route path="/place/:id" element={<PlaceDetailPage />} />
