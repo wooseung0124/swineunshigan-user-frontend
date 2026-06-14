@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api/api';
 import { useAuthStore, selectUser } from '../store/authStore';
@@ -30,16 +30,35 @@ export default function PaymentPage() {
   const [payBrand, setPayBrand] = useState('kakao');      // 간편결제 선택 브랜드
   const [submitting, setSubmitting] = useState(false);
 
+  const [schedule, setSchedule] = useState(null);
+
+  useEffect(() => {
+    api.schedules.detail(id, user?.id)
+      .then((data) => setSchedule(data))
+      .catch(() => {});
+  }, [id, user?.id]);
+
   const handlePayClick = async () => {
     if (!expanded) {
-      setExpanded(true); // 1차: 결제수단 펼치기
+      setExpanded(true);
       return;
     }
-    // 2차: 참여 완료 (페이크 — 실제 결제 없음)
     setSubmitting(true);
     try {
       await api.schedules.join(id, user?.id, user?.gender);
-      navigate(`/schedule/${id}`, { state: { toast: '참여가 완료되었습니다' } });
+      navigate('/payment/complete', {
+        state: {
+          info: {
+            id,
+            place: schedule?.place?.name || '-',
+            dateTime: schedule?.scheduledAt
+              ? new Date(schedule.scheduledAt).toLocaleString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit' })
+              : '-',
+            category: schedule?.category || '-',
+            members: schedule ? `${schedule.currentParticipants}/${schedule.maxParticipants}명` : '-',
+          },
+        },
+      });
     } catch (err) {
       alert(err.message || '참여에 실패했습니다.');
       setSubmitting(false);
