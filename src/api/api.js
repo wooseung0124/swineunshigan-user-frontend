@@ -128,12 +128,12 @@ export const api = {
       return request(`/api/schedules/${id}/verifications`);
     },
 
-    // QR 인증 처리 (개설자가 참여자 QR을 스캔)
-    verifyQR: (id, qrPayload) => {
-      if (IS_MOCK) return mockDb.schedules.verifyQR(id, qrPayload);
-      return request(`/api/schedules/${id}/verify`, {
+    // QR 인증 처리 (참여자 QR을 스캔 → 토큰+위치로 출석 인증)
+    verifyQR: (id, token, latitude, longitude) => {
+      if (IS_MOCK) return mockDb.schedules.verifyQR(id, token);
+      return request(`/api/v1/schedules/${id}/attendances`, {
         method: 'POST',
-        body: JSON.stringify(qrPayload),
+        body: JSON.stringify({ token, latitude, longitude }),
       });
     },
   },

@@ -99,15 +99,28 @@ export default function ScheduleDetailPage() {
     return () => clearInterval(timer);
   }, [schedule]);
 
-  // ★ 여기에 추가 ★
   const handleScanSuccess = useCallback(async (payload) => {
     setScannerOpen(false);
     setVerifyMessage(null);
+
+    // payload = QR에 담긴 토큰 (명세: token)
+    const token = payload;
+
+    // 위치 받기 (명세 필수: latitude/longitude). 실패해도 mock은 진행됨
+    const getCoords = () => new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve({ latitude: null, longitude: null });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        () => resolve({ latitude: null, longitude: null }),
+        { timeout: 10000 }
+      );
+    });
+
     try {
-      const result = await api.schedules.verifyQR(id, payload);
+      const { latitude, longitude } = await getCoords();
+      const result = await api.schedules.verifyQR(id, token, latitude, longitude);
       const name = result?.participant?.user?.name || '참여자';
       setVerifyMessage({ type: 'success', text: `${name}님 인증 완료` });
-      // 인증 목록 갱신
       const fresh = await api.schedules.verifications(id);
       setVerifications(fresh || []);
     } catch (err) {
