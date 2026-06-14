@@ -13,7 +13,10 @@
 //   (회원)   복귀 시 이미 로그인 → captureFromUrl(userId) → 바로 {userId} 저장
 // =============================================================
 
+
+
 import { PERSONALITY_CONNECTION, PERSONALITY_THINK } from '../types/types';
+export const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
 
 const KEY_PREFIX = 'resttime:personality';
 const PENDING_KEY = `${KEY_PREFIX}:pending`;

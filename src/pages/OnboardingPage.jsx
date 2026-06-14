@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { markOnboardingSeen } from '../utils/onboarding';
+import { PERSONALITY_TEST_URL } from '../utils/personality';
+
 
 import img1 from '../components/icons/캐러셀.svg';
 import img2 from '../components/icons/캐러셀1.svg';
@@ -10,7 +12,6 @@ import img5 from '../components/icons/케러셀5.png';
 import img6 from '../components/icons/캐러셀6.svg';
 import img7 from '../components/icons/캐러셀7.svg';
 
-const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
 
 // 슬라이드 1~7 (요엘님 확정 텍스트 + 시안 버튼 라벨)
 const SLIDES = [
