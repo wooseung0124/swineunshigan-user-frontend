@@ -3,13 +3,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api/api';
 import { useAuthStore, selectUser } from '../store/authStore';
 
+import kakaoPay from '../components/icons/카카오페이.svg';
+import naverPay from '../components/icons/naverpay.svg';
+import payco from '../components/icons/PAYCO.svg';
+import tossIcon from '../components/icons/토스아이콘.png';
+import tossText from '../components/icons/toss.svg';
+import lpay from '../components/icons/Lpay.svg';
+import ssgPay from '../components/icons/SSGPAY.png';
+
 const PAY_METHODS = [
-  { key: 'kakao', label: '카카오페이' },
-  { key: 'naver', label: '네이버페이' },
-  { key: 'payco', label: '페이코' },
-  { key: 'toss', label: '토스페이' },
-  { key: 'lpay', label: 'L.페이' },
-  { key: 'ssg', label: 'SSG페이' },
+  { key: 'kakao', img: kakaoPay },
+  { key: 'naver', img: naverPay },
+  { key: 'payco', img: payco },
+  { key: 'toss', icon: tossIcon, text: tossText },  // 토스만 2장
+  { key: 'lpay', img: lpay },
+  { key: 'ssg', img: ssgPay },
 ];
 
 export default function PaymentPage() {
@@ -105,12 +113,19 @@ export default function PaymentPage() {
                     onClick={() => setPayBrand(p.key)}
                     style={{
                       ...S.payChip,
-                      background: payBrand === p.key ? 'var(--color-text)' : 'var(--color-card-light)',
-                      color: payBrand === p.key ? 'var(--color-text-white)' : 'var(--color-text-light-gray)',
-                      borderColor: payBrand === p.key ? 'var(--color-text)' : 'var(--color-border-light)',
+                      background: payBrand === p.key ? '#242423' : 'var(--color-card-light)',
+                      borderColor: payBrand === p.key ? '#242423' : 'var(--color-border-light)',
+                      opacity: payBrand === p.key ? 1 : 0.5,
                     }}
                   >
-                    {p.label}
+                    {p.key === 'toss' ? (
+                      <span style={S.payInner}>
+                        <img src={p.icon} alt="" style={{ height: '18px' }} />
+                        <img src={p.text} alt="toss" style={{ height: '14px' }} />
+                      </span>
+                    ) : (
+                      <img src={p.img} alt={p.key} style={{ height: '18px', objectFit: 'contain' }} />
+                    )}
                   </button>
                 ))}
               </div>
@@ -170,8 +185,11 @@ const S = {
   payGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--spacing-2)', padding: 'var(--spacing-2) 0 var(--spacing-3) var(--spacing-6)' },
   payChip: {
     padding: 'var(--spacing-3) 0', borderRadius: 'var(--radius-md)', border: '1px solid',
-    fontSize: 'var(--font-size-body-sm)', fontWeight: 'var(--font-weight-semibold)', cursor: 'pointer',
+    background: 'var(--color-card-light)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+    transition: 'opacity 0.15s',
   },
+  payInner: { display: 'flex', alignItems: 'center', gap: '4px' },
   freeNotice: {
     position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-gray)',
