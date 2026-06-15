@@ -4,6 +4,23 @@ import { useAuthStore, selectUser } from '../store/authStore';
 import { api } from '../api/api';
 import { SCHEDULE_CATEGORY, SCHEDULE_CATEGORY_LABEL } from '../types/types';
 
+const generateDates = () => {
+  const dates = [];
+  const today = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    dates.push({
+      date: d.getDate(),
+      day: ['일', '월', '화', '수', '목', '금', '토'][d.getDay()],
+      iso: d.toISOString().split('T')[0],
+    });
+  }
+  return dates;
+};
+const DATES = generateDates();
+
+
 const CATEGORY_OPTIONS = Object.keys(SCHEDULE_CATEGORY).map(key => ({
   value: key,
   label: SCHEDULE_CATEGORY_LABEL[key],
@@ -148,16 +165,36 @@ export default function ScheduleEditPage() {
           </div>
         </div>
 
-        {/* 날짜 */}
+        {/* 날짜 — 개설과 동일한 7일 가로 버튼 */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ color: 'var(--color-text)', fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>날짜</div>
-          <div style={{ fontSize: '13px', color: 'var(--color-text)', marginBottom: '8px' }}>{selectedDate ? `${Number(selectedDate.split('-')[1])}월` : ''}</div>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={e => setSelectedDate(e.target.value)}
-            style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid var(--color-border)', fontSize: '14px', boxSizing: 'border-box' }}
-          />
+          <div style={{ fontSize: '13px', color: 'var(--color-text)', marginBottom: '8px' }}>
+            {selectedDate ? `${Number(selectedDate.split('-')[1])}월` : ''}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px' }}>
+            {DATES.map(d => (
+              <div
+                key={d.iso}
+                onClick={() => setSelectedDate(d.iso)}
+                style={{
+                  flex: 1, height: '56px',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                  borderRadius: '8px', cursor: 'pointer',
+                  background: selectedDate === d.iso ? 'var(--color-primary-100)' : 'transparent',
+                  border: selectedDate === d.iso ? '1px solid var(--color-primary-500)' : '1px solid transparent',
+                }}
+              >
+                <div style={{
+                  fontSize: '11px', marginBottom: '4px',
+                  color: d.day === '일' ? '#ff3b30' : d.day === '토' ? '#007aff' : 'var(--color-text-gray)',
+                }}>{d.day}</div>
+                <div style={{
+                  fontSize: '14px', fontWeight: '600',
+                  color: selectedDate === d.iso ? 'var(--color-primary-700)' : 'var(--color-text)',
+                }}>{d.date}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* 시간 — CreateRoom과 동일한 휠 방식 (정시/30분만) */}
