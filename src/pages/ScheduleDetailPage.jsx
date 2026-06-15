@@ -519,21 +519,22 @@ const joinButtonLabel =
         {!isCancelled && isOwner && (
   <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
     <button
-      disabled={!isOwner}
-      style={{
-        flex: 1,
-        padding: '14px',
-        background: isOwner ? '#A8DC4F' : '#eee',
-        color: isOwner ? '#000' : '#999',
-        border: 'none',
-        borderRadius: '12px',
-        fontSize: '15px',
-        fontWeight: '700',
-        cursor: isOwner ? 'pointer' : 'not-allowed',
-      }}
-    >
-      수정하기
-    </button>
+  disabled={!isOwner}
+  onClick={() => navigate(`/schedule/${id}/edit`)}
+  style={{
+    flex: 1,
+    padding: '14px',
+    background: isOwner ? '#A8DC4F' : '#eee',
+    color: isOwner ? '#000' : '#999',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '15px',
+    fontWeight: '700',
+    cursor: isOwner ? 'pointer' : 'not-allowed',
+  }}
+>
+  수정하기
+</button>
     <button
       disabled={!isOwner}
       onClick={() => setCancelModalOpen(true)} 
