@@ -61,7 +61,25 @@ const generateDates = () => {
 };
 
 const DATES = generateDates();
+function Row({ label, value, last }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: last ? 0 : '12px' }}>
+      <span style={{ color: '#999' }}>{label}</span>
+      <span style={{ color: '#000', fontWeight: 500 }}>{value}</span>
+    </div>
+  );
+}
 
+function formatDup(scheduledAt) {
+  if (!scheduledAt) return '-';
+  const [date, time] = scheduledAt.split(' ');
+  const [y, m, d] = date.split('-');
+  const [h, min] = (time || '00:00').split(':');
+  const hour = Number(h);
+  const period = hour < 12 ? '오전' : '오후';
+  const dh = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+  return `${Number(m)}월 ${Number(d)}일 ${period} ${dh}:${min}`;
+}
 export default function CreateRoom() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -82,6 +100,8 @@ export default function CreateRoom() {
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+  const [showDuplicate, setShowDuplicate] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
 
   const currentUserId = useAuthStore.getState().user?.id;
 
@@ -127,6 +147,12 @@ export default function CreateRoom() {
         setShowComplete(true);
       })
       .catch(err => {
+        if (err.code === 'DUPLICATE_DAY') {
+          setShowConfirm(false);
+          setDuplicateInfo(err.existing);
+          setShowDuplicate(true);
+          return;
+        }
         alert(err.message || '일정 개설에 실패했습니다.');
       });
   };
@@ -579,56 +605,31 @@ export default function CreateRoom() {
   </div>
 )}
 
-      {/* 완료 모달 */}
-      {showComplete && (
-  <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-    <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', width: '85%', maxWidth: '400px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
-        <div style={{ fontSize: '18px', fontWeight: '700' }}>일정이 개설되었습니다</div>
-        <div style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>시간과 장소를 꼭 준수해주세요</div>
-      </div>
+      {/* 중복 개설 팝업 (하루 하나) */}
+      {showDuplicate && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '28px 24px 24px', width: '85%', maxWidth: '360px' }}>
+            <div style={{ textAlign: 'center', fontSize: '17px', fontWeight: 700, color: '#000', lineHeight: 1.5, marginBottom: '20px' }}>
+              일정은 하루에 하나만<br />개설 할 수 있어요
+            </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-          <span style={{ color: '#999' }}>장소</span>
-          <span style={{ fontWeight: '500' }}>{placeName}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-          <span style={{ color: '#999' }}>일시</span>
-          <span style={{ fontWeight: '500' }}>
-            {selectedDate} {selectedTime.hour >= 12 ? '오후' : '오전'} {selectedTime.hour % 12 || 12}:{String(selectedTime.minute).padStart(2, '0')}
-          </span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-          <span style={{ color: '#999' }}>활동 유형</span>
-          <span style={{ fontWeight: '500' }}>{SCHEDULE_CATEGORY_LABEL[selectedCategory]}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-          <span style={{ color: '#999' }}>모집 인원</span>
-          <span style={{ fontWeight: '500' }}>{maxParticipants}명</span>
-        </div>
-      </div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#000', marginBottom: '10px' }}>내가 개설한 일정</div>
+            <div style={{ background: '#f7f7f7', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
+              <Row label="일시" value={formatDup(duplicateInfo?.scheduledAt)} />
+              <Row label="장소" value={duplicateInfo?.place?.name || '-'} />
+              <Row label="모집인원" value={`${duplicateInfo?.currentParticipants ?? 1}/${duplicateInfo?.maxParticipants ?? '-'}명`} />
+              <Row label="카테고리" value={SCHEDULE_CATEGORY_LABEL[duplicateInfo?.category] || '-'} last />
+            </div>
 
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button
-          type="button"
-          onClick={() => navigate('/home')}
-          style={{ flex: 1, padding: '14px', background: '#f5f5f5', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
-        >
-          홈으로
-        </button>
-        <button
-          type="button"
-          onClick={() => navigate('/schedule')}
-          style={{ flex: 1, padding: '14px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
-        >
-          일정 보러가기
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            <button
+              onClick={() => setShowDuplicate(false)}
+              style={{ width: '100%', padding: '15px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

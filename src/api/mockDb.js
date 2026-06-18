@@ -361,6 +361,22 @@ export const mockDb = {
       mockLog('schedules.create', data, currentUserId);
       const db = load();
 
+      // 같은 날 이미 개설한 일정 차단 (운영방침 제3조)
+      const dupDate = data.scheduledAt?.slice(0, 10);
+      const dupExisting = db.schedules.find(s =>
+        s.creatorId === currentUserId &&
+        s.status !== 'CANCELED' &&
+        s.scheduledAt?.slice(0, 10) === dupDate
+      );
+      if (dupExisting) {
+        return Promise.reject({
+          code: 'DUPLICATE_DAY',
+          message: '일정은 하루에 하나만 개설할 수 있어요.',
+          existing: dupExisting,
+        });
+      }
+      
+
       const newId = db.schedules.length
         ? Math.max(...db.schedules.map(s => s.id)) + 1
         : 1;
