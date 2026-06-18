@@ -1,9 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore, selectIsAuthenticated } from '../../store/authStore';
+import { api } from '../../api/api';
+import ScheduleCard from '../schedule/ScheduleCard';
+import LoginRequiredModal from './LoginRequiredModal';
 
 export default function SlideUpPanel({ place, onClose }) {
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  // 장소 변경 시 해당 장소의 일정 fetch
+  useEffect(() => {
+    if (!place) return;
+    let alive = true;
+    setLoading(true);
+    api.schedules.listByPlace(place.id)
+      .then(data => { if (alive) setSchedules(data || []); })
+      .catch(err => { console.error('[SlideUpPanel] listByPlace 실패', err); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [place]);
+
   if (!place) return null;
+
+  const handleCardClick = (schedule) => {
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+      return;
+    }
+    onClose();
+    navigate(`/schedule/${schedule.id}`);
+  };
+
+  const handleCreateRoom = () => {
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+      return;
+    }
+    onClose();
+    navigate('/create-room', { state: { place } });
+  };
 
   return (
     <>
@@ -27,93 +66,96 @@ export default function SlideUpPanel({ place, onClose }) {
         bottom: 0,
         left: 0,
         right: 0,
-        background: '#1a1a1a',
+        background: '#fff',
         borderRadius: '20px 20px 0 0',
-        padding: '20px',
         zIndex: 1000,
-        maxHeight: '50vh',
-        overflowY: 'auto',
+        maxHeight: '80vh',
+        display: 'flex',
+        flexDirection: 'column',
         animation: 'slideUp 0.3s ease-out',
-        color: '#fff',
       }}>
         {/* 드래그 핸들 */}
-        <div style={{
-          width: '40px',
-          height: '4px',
-          background: '#555',
-          borderRadius: '2px',
-          margin: '0 auto 16px',
-        }} />
+        <div style={{ padding: '12px 0', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: '40px', height: '4px', background: '#ddd', borderRadius: '2px' }} />
+        </div>
 
-        {/* 장소 이름 */}
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          marginBottom: '8px',
-        }}>
-          {place.place_name}
-        </h2>
-
-        {/* 카테고리 */}
-        {place.category_group_name && (
-          <span style={{
-            fontSize: '13px',
-            color: '#aaa',
-            marginBottom: '12px',
-            display: 'block',
-          }}>
-            {place.category_group_name}
-          </span>
-        )}
-
-        {/* 주소 */}
-        <p style={{ fontSize: '14px', color: '#ccc', marginBottom: '6px' }}>
-          📍 {place.road_address_name || place.address_name}
-        </p>
-
-        {/* 전화번호 */}
-        {place.phone && (
-          <p style={{ fontSize: '14px', color: '#ccc', marginBottom: '16px' }}>
-            📞 {place.phone}
+        {/* 스크롤 영역 */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 20px' }}>
+          {/* 장소 정보 */}
+          <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: '#000' }}>
+            {place.name}
+          </h2>
+          {place.category?.name && (
+            <span style={{ fontSize: '13px', color: '#999', marginBottom: '12px', display: 'block' }}>
+              {place.category.name}
+            </span>
+          )}
+          <p style={{ fontSize: '14px', color: '#666', marginBottom: '6px' }}>
+            📍 {place.address}
           </p>
-        )}
+          {place.contact && (
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
+              📞 {place.contact}
+            </p>
+          )}
 
-        {/* 버튼 영역 */}
-        <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-          <button style={{
-            flex: 1,
-            padding: '14px',
-            background: '#333',
-            color: '#fff',
-            border: '1px solid #555',
-            borderRadius: '12px',
-            fontSize: '15px',
-            fontWeight: '600',
-            cursor: 'pointer',
+          {/* 일정 리스트 헤더 */}
+          <div style={{
+            borderTop: '1px solid #eee',
+            paddingTop: '16px',
+            marginTop: '16px',
+            marginBottom: '12px',
           }}>
-            방 조회하기
-          </button>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#000' }}>
+              일정찾기 <span style={{ color: '#A8DC4F' }}>{schedules.length}</span>
+            </h3>
+          </div>
+
+          {/* 일정 카드 리스트 */}
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: '#999', fontSize: '13px' }}>
+              불러오는 중...
+            </div>
+          ) : schedules.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: '#999', fontSize: '13px' }}>
+              아직 만들어진 일정이 없습니다.
+            </div>
+          ) : (
+            schedules.map(schedule => (
+              <ScheduleCard
+                key={schedule.id}
+                schedule={schedule}
+                onClick={() => handleCardClick(schedule)}
+              />
+            ))
+          )}
+        </div>
+
+        {/* 하단 고정: 일정 개설하기 버튼 */}
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #eee', flexShrink: 0 }}>
           <button
-            onClick={() => {
-              onClose();
-              navigate('/create-room', { state: { place } });
-            }}
+            onClick={handleCreateRoom}
             style={{
-              flex: 1,
+              width: '100%',
               padding: '14px',
-              background: '#FEE500',
-              color: '#000',
+              background: '#A8DC4F',
+              color: '#fff',
               border: 'none',
               borderRadius: '12px',
               fontSize: '15px',
-              fontWeight: '600',
+              fontWeight: '700',
               cursor: 'pointer',
             }}
           >
-            방 만들기
+            일정 개설하기
           </button>
         </div>
       </div>
+
+      <LoginRequiredModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
 
       <style>{`
         @keyframes slideUp {

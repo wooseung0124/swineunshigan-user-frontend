@@ -1,38 +1,45 @@
+import { buildOAuthUrl } from '../../config/oauth';
+import naverIcon from '../../assets/icons/naver.svg';
+
 export default function NaverLoginButton() {
     const handleNaverLogin = () => {
-      const clientId = import.meta.env.VITE_NAVER_CLIENT_ID;
-      const redirectUri = encodeURIComponent(import.meta.env.VITE_REDIRECT_URI);
-      const state = crypto.randomUUID();
-  
-      sessionStorage.setItem('naver_oauth_state', state);
-  
-      const url =
-        `https://nid.naver.com/oauth2.0/authorize` +
-        `?response_type=code` +
-        `&client_id=${clientId}` +
-        `&redirect_uri=${redirectUri}` +
-        `&state=${state}`;
-  
-      window.location.href = url;
+      window.location.href = buildOAuthUrl('naver');
     };
-  
+
     return (
       <button
         onClick={handleNaverLogin}
         style={{
           width: '100%',
           maxWidth: '360px',
-          height: '48px',
-          background: '#03C75A',
-          color: '#fff',
+          height: '46px',
+          background: '#03A94D',
+          color: 'var(--color-background)',
           border: 'none',
           borderRadius: '12px',
           fontSize: '15px',
           fontWeight: '500',
           cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          position: 'relative',
         }}
       >
-        네이버로 시작하기
+        <img
+          src={naverIcon}
+          alt=""
+          style={{
+            width: '18px',
+            height: '18px',
+            position: 'absolute',
+            left: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+          }}
+        />
+        네이버 로그인
       </button>
     );
   }
