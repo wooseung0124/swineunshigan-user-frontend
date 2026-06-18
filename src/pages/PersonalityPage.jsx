@@ -2,23 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
 import { getPersonality } from '../utils/personality';
-import {
-  PERSONALITY_CONNECTION_LABEL,
-  PERSONALITY_CONNECTION_DESC,
-  PERSONALITY_THINK_LABEL,
-  PERSONALITY_THINK_ALIAS,
-  PERSONALITY_THINK_DESC,
-} from '../types/types';
 
-// 성향 테스트 외부 랜딩 (ProfileEditPage와 동일 출처). 경로 바뀌면 여기만 수정.
 const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
 
-/**
- * 이향인 성향 테스트 결과 화면 (요엘님 확정)
- * - connection 섹션: 이름(LABEL) + 설명(DESC)
- * - think 섹션: 별칭(ALIAS) 제목 + 기본이름(LABEL) 배지 + 설명(DESC)
- * - 하단 네비 없음(Layout 밖)
- */
+const connectionImages = import.meta.glob('../assets/personality/{BM,BG,JM,GT,DS,GJ}.png', { eager: true, import: 'default' });
+const thinkImages = import.meta.glob('../assets/personality/{ESSENCE,CONDITION,DEFINITION,INTUITION,RESPONSIBILITY,EVALUATION}.png', { eager: true, import: 'default' });
+const getImg = (glob, code) => glob[`../assets/personality/${code}.png`] || null;
 
 export default function PersonalityPage() {
   const navigate = useNavigate();
@@ -45,19 +34,11 @@ export default function PersonalityPage() {
   }
 
   const hasResult = !!personality;
-
-  // connection
-  const connLabel = hasResult ? (PERSONALITY_CONNECTION_LABEL[personality.connection] || personality.connection) : null;
-  const connDesc = hasResult ? PERSONALITY_CONNECTION_DESC[personality.connection] : null;
-
-  // think
-  const thinkAlias = hasResult ? (PERSONALITY_THINK_ALIAS[personality.think] || PERSONALITY_THINK_LABEL[personality.think] || personality.think) : null;
-  const thinkLabel = hasResult ? (PERSONALITY_THINK_LABEL[personality.think] || personality.think) : null;
-  const thinkDesc = hasResult ? PERSONALITY_THINK_DESC[personality.think] : null;
+  const connImg = hasResult ? getImg(connectionImages, personality.connection) : null;
+  const thinkImg = hasResult ? getImg(thinkImages, personality.think) : null;
 
   return (
     <div style={S.page}>
-      {/* 헤더 */}
       <div style={S.header}>
         <button onClick={() => navigate(-1)} style={S.iconBtn} aria-label="뒤로가기">←</button>
         <h1 style={S.headerTitle}>이향인 성향 테스트</h1>
@@ -67,37 +48,27 @@ export default function PersonalityPage() {
       <div style={S.body}>
         {hasResult ? (
           <>
-            {/* connection 섹션: 이름 + 설명 */}
-            <div style={S.sectionLabel}>이향인 성향</div>
-            <div style={S.card}>
-              <span style={S.pill}>{connLabel}</span>
-              {connDesc
-                ? <p style={S.desc}>{connDesc}</p>
-                : <p style={S.descMuted}>유형 설명 준비 중이에요.</p>}
-            </div>
+            <div style={S.resultTitle}>이향인 성향 테스트 결과</div>
 
-            {/* think 섹션: 별칭 제목 + 기본이름 배지 + 설명 */}
-            <div style={{ ...S.sectionLabel, marginTop: 'var(--spacing-6)' }}>사고 방식</div>
-            <div style={S.card}>
-              <div style={S.thinkHead}>
-                <span style={S.thinkAlias}>{thinkAlias}</span>
-                <span style={S.thinkBadge}>{thinkLabel}</span>
-              </div>
-              {thinkDesc
-                ? <p style={S.desc}>{thinkDesc}</p>
-                : <p style={S.descMuted}>유형 설명 준비 중이에요.</p>}
-            </div>
+            {connImg
+              ? <img src={connImg} alt="나의 연결 방식" style={S.resultImg} />
+              : <div style={S.emptyCard}>유형 이미지 준비 중이에요.</div>}
+
+            <div style={S.divider} />
+
+            {thinkImg
+              ? <img src={thinkImg} alt="나의 사고 방식" style={S.resultImg} />
+              : <div style={S.emptyCard}>유형 이미지 준비 중이에요.</div>}
 
             <button onClick={handleRetest} style={S.retestBtn}>테스트 다시하기</button>
           </>
         ) : (
           <>
-            <div style={S.sectionLabel}>이향인 성향</div>
+            <div style={S.resultTitle}>이향인 성향 테스트 결과</div>
             <div style={S.emptyCard}>아직 성향 테스트를 하지 않으셨어요.</div>
             <button onClick={handleRetest} style={S.retestBtn}>성향 테스트 하러 가기</button>
           </>
         )}
-
       </div>
     </div>
   );
@@ -106,7 +77,6 @@ export default function PersonalityPage() {
 const S = {
   page: { minHeight: '100vh', background: 'var(--color-background)', color: 'var(--color-text)' },
   center: { minHeight: '100vh', background: 'var(--color-background)', display: 'flex', justifyContent: 'center', alignItems: 'center' },
-
   header: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: 'var(--spacing-4)', borderBottom: '1px solid var(--color-border-light)',
@@ -119,53 +89,19 @@ const S = {
     fontSize: 'var(--font-size-heading-3)', fontWeight: 'var(--font-weight-bold)',
     color: 'var(--color-text)', margin: 0,
   },
-
-  body: { padding: 'var(--spacing-4)' },
-  sectionLabel: {
-    fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-bold)',
-    color: 'var(--color-text)', marginBottom: 'var(--spacing-3)',
-  },
-
-  card: {
-    padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border-light)', background: 'var(--color-card-light)',
-  },
-  pill: {
-    display: 'inline-block', padding: 'var(--spacing-1) var(--spacing-3)',
-    borderRadius: 'var(--radius-round)', background: 'var(--color-primary-light)',
-    color: 'var(--color-primary-dark)', fontSize: 'var(--font-size-body-sm)',
-    fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-3)',
-  },
-
-  thinkHead: {
-    display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)',
-    marginBottom: 'var(--spacing-3)', flexWrap: 'wrap',
-  },
-  thinkAlias: {
-    fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-bold)',
-    color: 'var(--color-primary-dark)',
-  },
-  thinkBadge: {
-    display: 'inline-block', padding: '2px var(--spacing-2)',
-    borderRadius: 'var(--radius-round)', background: 'var(--color-primary-light)',
-    color: 'var(--color-primary-dark)', fontSize: 'var(--font-size-caption)',
-    fontWeight: 'var(--font-weight-semibold)',
-  },
-
-  desc: { margin: 0, fontSize: 'var(--font-size-body)', lineHeight: '22px', color: 'var(--color-text)' },
-  descMuted: { margin: 0, fontSize: 'var(--font-size-body)', color: 'var(--color-text-placeholder)' },
-
+  body: { padding: 'var(--spacing-4)', maxWidth: '520px', margin: '0 auto' },
+  resultTitle: { fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text)', marginBottom: 'var(--spacing-4)', paddingLeft: 'var(--spacing-4)' },
+  resultImg: { width: '100%', maxWidth: '360px', height: 'auto', display: 'block', margin: '0 auto', borderRadius: 'var(--radius-lg)' },
+  divider: { height: '1px', background: 'var(--color-border)', margin: 'var(--spacing-6) auto', maxWidth: '360px' },
   emptyCard: {
     padding: 'var(--spacing-4)', borderRadius: 'var(--radius-lg)',
     border: '1px dashed var(--color-border)', background: 'var(--color-card-light)',
     color: 'var(--color-text-gray)', fontSize: 'var(--font-size-body)',
   },
-
   retestBtn: {
     width: '100%', marginTop: 'var(--spacing-6)', padding: 'var(--spacing-4)',
     borderRadius: 'var(--radius-lg)', border: 'none',
     background: 'var(--color-primary)', color: 'var(--color-text)',
     fontSize: 'var(--font-size-body-lg)', fontWeight: 'var(--font-weight-bold)', cursor: 'pointer',
   },
-  
 };
