@@ -28,6 +28,8 @@ import OnboardingPermissionPage from '../pages/OnboardingPermissionPage';
 import { hasSeenOnboarding } from '../utils/onboarding';
 import PaymentPage from '../pages/PaymentPage';
 import PaymentCompletePage from '../pages/PaymentCompletePage';
+import NameEditPage from '../pages/NameEditPage';
+import GenderEditPage from '../pages/GenderEditPage';
 
 
 
@@ -69,9 +71,12 @@ export default function Router() {
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
         <Route path="/notifications" element={<PrivateRoute><Layout><NotificationsPage /></Layout></PrivateRoute>} />
-        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-        <Route path="/personality" element={<PrivateRoute><PersonalityPage /></PrivateRoute>} />
-        <Route path="/profile-edit" element={<PrivateRoute><Layout><ProfileEditPage /></Layout></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
+        <Route path="/profile-edit/name" element={<PrivateRoute><Layout><NameEditPage /></Layout></PrivateRoute>} />
+        <Route path="/profile-edit/gender" element={<PrivateRoute><Layout><GenderEditPage /></Layout></PrivateRoute>} />
+        <Route path="/personality" element={<PrivateRoute><Layout><PersonalityPage /></Layout></PrivateRoute>} />
+        <Route path="/profile-edit" element={<PrivateRoute><ProfileEditPage /></PrivateRoute>} />
+        <Route path="/profile-edit/name" element={<PrivateRoute><NameEditPage /></PrivateRoute>} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/onboarding/test" element={<OnboardingTestPage />} />
         <Route path="/onboarding/permission" element={<OnboardingPermissionPage />} />
