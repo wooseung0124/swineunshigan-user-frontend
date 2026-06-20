@@ -42,10 +42,14 @@ export default function KakaoCallback() {
       body: JSON.stringify({ code }),
     })
       .then(res => res.json())
-      .then(({ token, user }) => {
-        login(token, user);
-        promotePendingToUser(user.id);
-        navigate('/home');
+      .then((data) => {
+        if (data.authStatus === 'LOGIN_SUCCESS') {
+          login(data.token.accessToken, data.user);
+          promotePendingToUser(data.user.id);
+          navigate('/home');
+        } else if (data.authStatus === 'ADDITIONAL_INFO_REQUIRED') {
+          navigate('/mypage');
+        }
       })
       .catch(() => {
         alert('로그인에 실패했습니다.');
