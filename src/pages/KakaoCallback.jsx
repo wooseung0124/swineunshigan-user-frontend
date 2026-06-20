@@ -48,7 +48,7 @@ export default function KakaoCallback() {
           promotePendingToUser(data.user.id);
           navigate('/home');
         } else if (data.authStatus === 'ADDITIONAL_INFO_REQUIRED') {
-          navigate('/mypage');
+          navigate('/home'); // ← 신규 회원은 1회용 회원가입 페이지 이동해야함
         }
       })
       .catch(() => {
