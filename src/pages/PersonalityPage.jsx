@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
-import { getPersonality } from '../utils/personality';
+import { getPersonality, PERSONALITY_TEST_URL } from '../utils/personality';
 
-const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
 
 const connectionImages = import.meta.glob('../assets/personality/{BM,BG,JM,GT,DS,GJ}.png', { eager: true, import: 'default' });
 const thinkImages = import.meta.glob('../assets/personality/{ESSENCE,CONDITION,DEFINITION,INTUITION,RESPONSIBILITY,EVALUATION}.png', { eager: true, import: 'default' });

@@ -1,6 +1,5 @@
 import { markOnboardingSeen } from '../utils/onboarding';
-
-const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
+import { PERSONALITY_TEST_URL } from '../utils/personality';
 
 export default function OnboardingTestPage() {
   const handleStartTest = () => {

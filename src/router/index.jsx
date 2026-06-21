@@ -30,7 +30,7 @@ import PaymentPage from '../pages/PaymentPage';
 import PaymentCompletePage from '../pages/PaymentCompletePage';
 import NameEditPage from '../pages/NameEditPage';
 import GenderEditPage from '../pages/GenderEditPage';
-
+import AdditionalInfoPage from '../pages/AdditionalInfoPage';
 
 
 function PrivateRoute({ children }) {
@@ -78,6 +78,7 @@ export default function Router() {
         <Route path="/profile-edit" element={<PrivateRoute><ProfileEditPage /></PrivateRoute>} />
         <Route path="/profile-edit/name" element={<PrivateRoute><NameEditPage /></PrivateRoute>} />
         <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/signup/additional" element={<AdditionalInfoPage />} />
         <Route path="/onboarding/test" element={<OnboardingTestPage />} />
         <Route path="/onboarding/permission" element={<OnboardingPermissionPage />} />
         <Route path="/payment/:id" element={<PrivateRoute><PaymentPage /></PrivateRoute>} />

@@ -16,7 +16,7 @@
 
 
 import { PERSONALITY_CONNECTION, PERSONALITY_THINK } from '../types/types';
-export const PERSONALITY_TEST_URL = 'https://app.shineunsigan.com/test.html';
+export const PERSONALITY_TEST_URL = 'https://shineunsigan.com/test.html?from=web';
 
 const KEY_PREFIX = 'resttime:personality';
 const PENDING_KEY = `${KEY_PREFIX}:pending`;
