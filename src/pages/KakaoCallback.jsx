@@ -35,11 +35,7 @@ export default function KakaoCallback() {
     }
     // ----------------------------------------------------
 
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/kakao/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    })
+    
 // 카카오 code를 백엔드 로그인 API로 전달 (경로: /api/v1/auth/kakao/login)
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/kakao/login`, {
       method: 'POST',
