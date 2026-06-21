@@ -55,34 +55,34 @@ export const api = {
   // 인증
   auth: {
     kakaoLogin: (code, redirectUri) =>
-      request('/api/auth/kakao/callback', {
+      request('/api/v1/auth/kakao/callback', {
         method: 'POST',
         body: JSON.stringify({ code, redirectUri }),
       }),
     naverLogin: (code, redirectUri) =>
-      request('/api/auth/naver/callback', {
+      request('/api/v1/auth/naver/callback', {
         method: 'POST',
         body: JSON.stringify({ code, redirectUri }),
       }),
     googleLogin: (code, redirectUri) =>
-      request('/api/auth/google/callback', {
+      request('/api/v1/auth/google/callback', {
         method: 'POST',
         body: JSON.stringify({ code, redirectUri }),
       }),
-    me: () => request('/api/auth/me'),
+    me: () => request('/api/v1/auth/me'),
   },
 
   // 일정
   schedules: {
     create: (data, currentUserId) => {
       if (IS_MOCK) return mockDb.schedules.create(data, currentUserId);
-      return request('/api/schedules', { method: 'POST', body: JSON.stringify(data) });
+      return request('/api/v1/schedules', { method: 'POST', body: JSON.stringify(data) });
     },
 
     list: (filters = {}) => {
       if (IS_MOCK) return mockDb.schedules.list();
       const params = new URLSearchParams(filters).toString();
-      return request(`/api/schedules${params ? '?' + params : ''}`);
+      return request(`/api/v1/schedules${params ? '?' + params : ''}`);
     },
     listByPlace: (placeId) => {
       if (IS_MOCK) return mockDb.schedules.listByPlace(placeId);
@@ -91,41 +91,41 @@ export const api = {
 
     detail: (id, currentUserId) => {
       if (IS_MOCK) return mockDb.schedules.detail(id, currentUserId);
-      return request(`/api/schedules/${id}`);
+      return request(`/api/v1/schedules/${id}`);
     },
 
     update: (id, data) => {
       if (IS_MOCK) return mockDb.schedules.update(id, data);
-      return request(`/api/schedules/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+      return request(`/api/v1/schedules/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
     },
 
     cancel: (id, reason) => {
       if (IS_MOCK) return mockDb.schedules.cancel(id, reason);
-      return request(`/api/schedules/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
+      return request(`/api/v1/schedules/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
     },
 
     remove: (id) => {
       if (IS_MOCK) return mockDb.schedules.remove(id);
-      return request(`/api/schedules/${id}`, { method: 'DELETE' });
+      return request(`/api/v1/schedules/${id}`, { method: 'DELETE' });
     },
 
 
 
     join: (id, currentUserId, currentUserGender) => {
       if (IS_MOCK) return mockDb.schedules.join(Number(id), currentUserId, currentUserGender);
-      return request(`/api/schedules/${id}/join`, { method: 'POST' });
+      return request(`/api/v1/schedules/${id}/join`, { method: 'POST' });
     },
 
     leave: (id, currentUserId) => {
       if (IS_MOCK) return mockDb.schedules.leave(Number(id), currentUserId);
-      return request(`/api/schedules/${id}/leave`, { method: 'DELETE' });
+      return request(`/api/v1/schedules/${id}/leave`, { method: 'DELETE' });
     },
-    upcoming: () => request('/api/schedules/upcoming'),
+    upcoming: () => request('/api/v1/schedules/upcoming'),
 
     // QR 인증 기록 목록
     verifications: (id) => {
       if (IS_MOCK) return mockDb.schedules.verifications(id);
-      return request(`/api/schedules/${id}/verifications`);
+      return request(`/api/v1/schedules/${id}/verifications`);
     },
 
     // QR 인증 처리 (참여자 QR을 스캔 → 토큰+위치로 출석 인증)
@@ -141,18 +141,18 @@ export const api = {
   statusShares: {
     upsert: (scheduleId, userId, payload) => {
       if (IS_MOCK) return mockDb.statusShares.upsert(scheduleId, userId, payload);
-      return request(`/api/schedules/${scheduleId}/status-share`, {
+      return request(`/api/v1/schedules/${scheduleId}/status-share`, {
         method: 'POST',
         body: JSON.stringify(payload),
       });
     },
     mine: (scheduleId, userId) => {
       if (IS_MOCK) return mockDb.statusShares.mine(scheduleId, userId);
-      return request(`/api/schedules/${scheduleId}/status-share/mine`);
+      return request(`/api/v1/schedules/${scheduleId}/status-share/mine`);
     },
     list: (scheduleId) => {
       if (IS_MOCK) return mockDb.statusShares.list(scheduleId);
-      return request(`/api/schedules/${scheduleId}/status-share`);
+      return request(`/api/v1/schedules/${scheduleId}/status-share`);
     },
   },
 
@@ -160,12 +160,12 @@ export const api = {
   places: {
     list: () => {
       if (IS_MOCK) return mockDb.places.list();
-      return request('/api/places');
+      return request('/api/v1/places');
     },
 
     detail: (id) => {
       if (IS_MOCK) return mockDb.places.detail(id);
-      return request(`/api/places/${id}`);
+      return request(`/api/v1/places/${id}`);
     },
 
     search: (filters = {}) => {
@@ -175,7 +175,7 @@ export const api = {
         return mockDb.places.search(q);
       }
       const params = new URLSearchParams(filters).toString();
-      return request(`/api/places/search${params ? '?' + params : ''}`);
+      return request(`/api/v1/places/search${params ? '?' + params : ''}`);
     },
   },
 
@@ -186,7 +186,7 @@ export const api = {
         const id = getCurrentUserIdFromStorage();
         return mockDb.users.detail(id);
       }
-      return request('/api/users/me');
+      return request('/api/v1/users/me');
     },
 
     update: (data) => {
@@ -194,7 +194,7 @@ export const api = {
         const id = getCurrentUserIdFromStorage();
         return mockDb.users.update(id, data);
       }
-      return request('/api/users/me', { method: 'PATCH', body: JSON.stringify(data) });
+      return request('/api/v1/users/me', { method: 'PATCH', body: JSON.stringify(data) });
     },
 
     withdraw: (reason) => {
@@ -202,12 +202,12 @@ export const api = {
         const id = getCurrentUserIdFromStorage();
         return mockDb.users.withdrawal(id, reason);
       }
-      return request('/api/users/me', { method: 'DELETE', body: JSON.stringify({ reason }) });
+      return request('/api/v1/users/me', { method: 'DELETE', body: JSON.stringify({ reason }) });
     },
 
     profile: (id) => {
       if (IS_MOCK) return mockDb.users.detail(id);
-      return request(`/api/users/${id}`);
+      return request(`/api/v1/users/${id}`);
     },
   },
 
@@ -218,12 +218,12 @@ export const api = {
         const userId = getCurrentUserIdFromStorage();
         return mockDb.notifications.list(userId);
       }
-      return request('/api/notifications');
+      return request('/api/v1/notifications');
     },
 
     read: (id) => {
       if (IS_MOCK) return mockDb.notifications.markAsRead(id);
-      return request(`/api/notifications/${id}/read`, { method: 'PATCH' });
+      return request(`/api/v1/notifications/${id}/read`, { method: 'PATCH' });
     },
 
     // 신규: 전체 읽음 처리
@@ -232,23 +232,23 @@ export const api = {
         const userId = getCurrentUserIdFromStorage();
         return mockDb.notifications.markAllAsRead(userId);
       }
-      return request('/api/notifications/read-all', { method: 'PATCH' });
+      return request('/api/v1/notifications/read-all', { method: 'PATCH' });
     },
 
     registerToken: (token) =>
-      request('/api/fcm/token', { method: 'POST', body: JSON.stringify({ token }) }),
+      request('/api/v1/fcm/token', { method: 'POST', body: JSON.stringify({ token }) }),
   },
 
   // 큐레이션
   curations: {
     list: () => {
       if (IS_MOCK) return mockDb.curations.list();
-      return request('/api/curations');
+      return request('/api/v1/curations');
     },
 
     detail: (id) => {
       if (IS_MOCK) return mockDb.curations.detail(id);
-      return request(`/api/curations/${id}`);
+      return request(`/api/v1/curations/${id}`);
     },
   },
 
@@ -259,7 +259,7 @@ export const api = {
         const userId = getCurrentUserIdFromStorage();
         return mockDb.bookmarks.list(userId);
       }
-      return request('/api/bookmarks');
+      return request('/api/v1/bookmarks');
     },
 
     add: (curationId) => {
@@ -268,12 +268,12 @@ export const api = {
         const userId = getCurrentUserIdFromStorage();
         return mockDb.bookmarks.toggle(userId, curationId);
       }
-      return request('/api/bookmarks', { method: 'POST', body: JSON.stringify({ curationId }) });
+      return request('/api/v1/bookmarks', { method: 'POST', body: JSON.stringify({ curationId }) });
     },
 
     remove: (id) => {
       if (IS_MOCK) return mockDb.bookmarks.removeById(id);
-      return request(`/api/bookmarks/${id}`, { method: 'DELETE' });
+      return request(`/api/v1/bookmarks/${id}`, { method: 'DELETE' });
     },
 
     // 신규: 토글 (있으면 제거, 없으면 추가) — 1 round-trip
@@ -282,7 +282,7 @@ export const api = {
         const userId = getCurrentUserIdFromStorage();
         return mockDb.bookmarks.toggle(userId, curationId);
       }
-      return request('/api/bookmarks/toggle', { method: 'POST', body: JSON.stringify({ curationId }) });
+      return request('/api/v1/bookmarks/toggle', { method: 'POST', body: JSON.stringify({ curationId }) });
     },
 
     // 신규: 북마크 여부 확인
@@ -291,7 +291,7 @@ export const api = {
         const userId = getCurrentUserIdFromStorage();
         return mockDb.bookmarks.check(userId, curationId);
       }
-      return request(`/api/bookmarks/check?curationId=${encodeURIComponent(curationId)}`);
+      return request(`/api/v1/bookmarks/check?curationId=${encodeURIComponent(curationId)}`);
     },
   },
 };
