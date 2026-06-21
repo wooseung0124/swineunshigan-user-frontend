@@ -48,10 +48,12 @@ export default function AdditionalInfoPage() {
       }),
     })
       .then((res) => res.json())
-      .then(({ token, user }) => {
-        if (!token) throw new Error('가입 실패');
-        login(token, user);
-        promotePendingToUser(user.id);
+      .then((data) => {
+        if (data.authStatus !== 'SIGNUP_SUCCESS' || !data.token?.accessToken) {
+          throw new Error('가입 실패');
+        }
+        login(data.token.accessToken, data.user);
+        promotePendingToUser(data.user.id);
         navigate('/home');
       })
       .catch(() => {
