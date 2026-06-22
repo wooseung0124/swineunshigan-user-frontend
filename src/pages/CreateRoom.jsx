@@ -110,7 +110,7 @@ export default function CreateRoom() {
 
   const [policyChecked, setPolicyChecked] = useState(false);    // 체크박스
   const [policyDetailAgreed, setPolicyDetailAgreed] = useState(false);  // 자세히보기 동의
-  const canConfirm = policyChecked && policyDetailAgreed;
+  const canConfirm = policyChecked || policyDetailAgreed;
 
 
   const genderLabel = GENDER_OPTIONS.find(g => g.value === genderLimit)?.label || '무관';
@@ -595,7 +595,7 @@ export default function CreateRoom() {
       {/* 동의하기 */}
       <div style={{ padding: '16px 20px' }}>
         <button
-          onClick={() => { setPolicyDetailAgreed(true); setShowPolicyDetail(false); }}
+          onClick={() => { setPolicyDetailAgreed(true); setPolicyChecked(true); setShowPolicyDetail(false); }}
           style={{ width: '100%', padding: '14px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
         >
           동의하기
