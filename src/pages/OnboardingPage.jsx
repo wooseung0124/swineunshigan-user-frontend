@@ -33,7 +33,7 @@ export default function OnboardingPage() {
   const slide = SLIDES[step];
 
   const finishOnboarding = () => {
-    if (dontShow) markOnboardingSeen();
+    markOnboardingSeen();  // dontShow 조건 제거: 온보딩을 봤으면(닫든 끝까지 보든) 다시 안 띄움
   };
 
   const handleNext = () => {
@@ -48,7 +48,7 @@ export default function OnboardingPage() {
 
   const handleClose = () => {
     finishOnboarding();
-    navigate('/home');
+    navigate('/login');  // /home(PrivateRoute) → 비로그인이면 다시 튕김. 온보딩 직후는 보통 비로그인이라 /login이 맞음
   };
 
   return (
