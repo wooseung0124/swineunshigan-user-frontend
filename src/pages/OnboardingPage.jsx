@@ -48,7 +48,7 @@ export default function OnboardingPage() {
 
   const handleClose = () => {
     finishOnboarding();
-    navigate('/login');  // /home(PrivateRoute) → 비로그인이면 다시 튕김. 온보딩 직후는 보통 비로그인이라 /login이 맞음
+    navigate('/');  // /home(PrivateRoute) → 비로그인이면 다시 튕김. 온보딩 직후는 보통 비로그인이라 /login이 맞음
   };
 
   return (
