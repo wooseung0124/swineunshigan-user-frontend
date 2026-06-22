@@ -58,7 +58,7 @@ export default function LoginPage() {
             letterSpacing: '-0.48px',
             marginTop: '20px',
           }}>
-            필요할 때만<br />가볍게 만나요
+            작은 결심이 필요한 순간,<br />쉬는시간
           </h2>
 
           <p style={{
@@ -70,7 +70,7 @@ export default function LoginPage() {
             letterSpacing: '-0.32px',
             marginTop: '12px',
           }}>
-            쉬는시간 이용을 위해 로그인 해주세요
+            나만의 속도로, 망설임 없이 시작해보세요.
           </p>
         </div>
 
