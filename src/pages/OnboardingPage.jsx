@@ -48,7 +48,8 @@ export default function OnboardingPage() {
 
   const handleClose = () => {
     finishOnboarding();
-    navigate('/');  // /home(PrivateRoute) → 비로그인이면 다시 튕김. 온보딩 직후는 보통 비로그인이라 /login이 맞음
+    localStorage.setItem('resttime:permission:pending', 'true');  // 홈에서 권한 팝업 뜨게
+    navigate('/home');
   };
 
   return (
