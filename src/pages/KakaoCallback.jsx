@@ -15,12 +15,12 @@ export default function KakaoCallback() {
 
     if (error) {
       console.log('[OAuth] 카카오 로그인 취소/실패:', error);
-      navigate('/login');
+      navigate('/');
       return;
     }
 
     if (!code) {
-      navigate('/login');
+      navigate('/');
       return;
     }
 

@@ -20,13 +20,13 @@ export default function GoogleCallback() {
     // OAuth 취소/실패 처리
     if (error) {
       console.log('[OAuth] 구글 로그인 취소/실패:', error);
-      navigate('/login');
+      navigate('/');
       return;
     }
   
     // code 누락 처리 (취소 시 code 없이 오는 경우)
     if (!code) {
-      navigate('/login');
+      navigate('/');
       return;
     }
   

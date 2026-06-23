@@ -166,7 +166,7 @@ const joinButtonLabel =
 
   const handleJoin = () => {
     if (!currentUserId) {
-      navigate('/login');
+      navigate('/');
       return;
     }
     setPolicyModalOpen(true); // 바로 join 대신 운영방침 모달부터

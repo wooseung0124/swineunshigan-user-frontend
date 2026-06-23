@@ -17,7 +17,7 @@ export default function AdditionalInfoPage() {
   useEffect(() => {
     const navState = window.history.state?.usr || {};
     if (!navState.signupToken) {
-      navigate('/login');
+      navigate('/');
       return;
     }
     setSignupToken(navState.signupToken);
