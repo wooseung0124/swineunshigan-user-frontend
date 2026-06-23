@@ -9,6 +9,7 @@ export default function MyPage() {
   const logout = useAuthStore((s) => s.logout);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [logoutModal, setLogoutModal] = useState(false);
 
   useEffect(() => {
     api.users.me()
@@ -18,10 +19,9 @@ export default function MyPage() {
   }, []);
 
   const handleLogout = () => {
-    if (confirm('정말 로그아웃 하시겠습니까?')) {
-      logout();
-      navigate('/');
-    }
+    setLogoutModal(false);
+    logout();
+    navigate('/');
   };
 
   if (loading) {
@@ -40,7 +40,6 @@ export default function MyPage() {
     );
   }
 
-  // 메뉴: 설정만 라우트 연결. 나머지 3개는 시안 모양만(클릭 비활성, route는 6/10 이후).
   const menus = [
     { label: '공지사항', to: null },
     { label: '이용약관 및 정책', to: null },
@@ -50,16 +49,14 @@ export default function MyPage() {
 
   return (
     <div style={S.page}>
-      {/* 헤더 */}
       <div style={S.header}>
         <button onClick={() => navigate(-1)} style={S.backBtn} aria-label="뒤로가기">←</button>
         <h1 style={S.headerTitle}>마이페이지</h1>
         <button onClick={() => navigate('/notifications')} style={S.bellBtn} aria-label="알림">
-  <BellIcon size={22} color="var(--color-text)" />
-</button>
+          <BellIcon size={22} color="var(--color-text)" />
+        </button>
       </div>
 
-      {/* 프로필 영역 (통째 클릭 → /profile 보기) */}
       <button onClick={() => navigate('/profile')} style={S.profileRow}>
         <div style={S.avatar}>
           {user.profileImageUrl
@@ -72,7 +69,6 @@ export default function MyPage() {
 
       <div style={S.divider} />
 
-      {/* 메뉴 */}
       <div style={S.menuList}>
         {menus.map((m) => (
           <button
@@ -87,13 +83,23 @@ export default function MyPage() {
         ))}
       </div>
 
-      {/* 로그아웃 */}
-      <button onClick={handleLogout} style={S.logout}>로그아웃</button>
+      <button onClick={() => setLogoutModal(true)} style={S.logout}>로그아웃</button>
+
+      {logoutModal && (
+        <div style={S.overlay} onClick={() => setLogoutModal(false)}>
+          <div style={S.modal} onClick={(e) => e.stopPropagation()}>
+            <p style={S.modalText}>로그아웃 하시겠습니까?</p>
+            <div style={S.modalBtns}>
+              <button onClick={() => setLogoutModal(false)} style={S.cancelBtn}>아니오</button>
+              <button onClick={handleLogout} style={S.confirmBtn}>로그아웃 하기</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-/** 기본 아바타 실루엣 (사진 없을 때) */
 function PersonIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--color-text-light-gray)" aria-hidden="true">
@@ -105,7 +111,6 @@ function PersonIcon() {
 const S = {
   page: { minHeight: '100vh', background: 'var(--color-background)', color: 'var(--color-text)' },
   center: { minHeight: '100vh', background: 'var(--color-background)', display: 'flex', justifyContent: 'center', alignItems: 'center' },
-
   header: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: 'var(--spacing-4)', borderBottom: '1px solid var(--color-border-light)',
@@ -123,7 +128,6 @@ const S = {
     background: 'transparent', border: 'none', fontSize: 'var(--font-size-heading-3)',
     cursor: 'pointer', width: '28px', padding: 0, textAlign: 'right',
   },
-
   profileRow: {
     display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)',
     width: '100%', padding: 'var(--spacing-5) var(--spacing-4)',
@@ -139,26 +143,47 @@ const S = {
     flex: 1, fontSize: 'var(--font-size-heading-4)', fontWeight: 'var(--font-weight-semibold)',
     color: 'var(--color-text)',
   },
-
   divider: { height: '8px', background: 'var(--color-card-light)' },
-
   menuList: { padding: '0 var(--spacing-4)' },
   menuItem: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     width: '100%', padding: 'var(--spacing-4) 0',
+    borderTop: 'none', borderLeft: 'none', borderRight: 'none',
     borderBottom: '1px solid var(--color-border-light)',
-    background: 'transparent', border: 'none', borderBottomWidth: '1px',
-    borderBottomStyle: 'solid', borderBottomColor: 'var(--color-border-light)',
-    textAlign: 'left',
+    background: 'transparent', textAlign: 'left',
   },
   menuLabel: { fontSize: 'var(--font-size-body-lg)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text)' },
-
   chevron: { color: 'var(--color-text-light-gray)', fontSize: 'var(--font-size-heading-3)' },
-
   logout: {
     display: 'block', padding: 'var(--spacing-5) var(--spacing-4)',
     background: 'transparent', border: 'none',
     color: 'var(--color-text-gray)', fontSize: 'var(--font-size-body-lg)',
     cursor: 'pointer', textAlign: 'left',
+  },
+  overlay: {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+  },
+  modal: {
+    width: '80%', maxWidth: '300px', background: 'var(--color-background)',
+    borderRadius: 'var(--radius-lg)', padding: 'var(--spacing-6) var(--spacing-5) var(--spacing-5)',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.15)', textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 'var(--font-size-body-lg)', fontWeight: 'var(--font-weight-semibold)',
+    color: 'var(--color-text)', margin: '0 0 var(--spacing-5)',
+  },
+  modalBtns: { display: 'flex', gap: 'var(--spacing-3)' },
+  cancelBtn: {
+    flex: 1, padding: 'var(--spacing-3)',
+    background: 'var(--color-background)', border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-base)', color: 'var(--color-text)',
+    fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-medium)', cursor: 'pointer',
+  },
+  confirmBtn: {
+    flex: 1, padding: 'var(--spacing-3)',
+    background: 'var(--color-primary)', border: 'none',
+    borderRadius: 'var(--radius-base)', color: 'var(--color-background)',
+    fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)', cursor: 'pointer',
   },
 };
