@@ -31,15 +31,33 @@ import PaymentCompletePage from '../pages/PaymentCompletePage';
 import NameEditPage from '../pages/NameEditPage';
 import GenderEditPage from '../pages/GenderEditPage';
 import AdditionalInfoPage from '../pages/AdditionalInfoPage';
-
+import PersonalitySignupPage from '../pages/PersonalitySignupPage';
+import { captureFromUrl } from '../utils/personality';
+import ProfileSignupPage from '../pages/ProfileSignupPage';
 
 function PrivateRoute({ children }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   return isAuthenticated ? children : <Navigate to="/" />;
 }
 
+// router/index.jsx 상단 import에 추가
+// import { useSearchParams } from 'react-router-dom';  ← 빠져있던 것
+// useAuthStore는 이미 import됨
+
 function RootEntry() {
-  // 온보딩 안 본 사람 → 온보딩으로. 본 사람 → 기존 로그인 흐름
+  const userId = useAuthStore((s) => s.user?.id);
+
+  // 성향테스트 복귀 캡처 — 유틸에 위임(검증·저장·URL정리 전부)
+  // userId 있으면 바로 {userId} 키 저장, pending 경로 스킵
+  const captured = captureFromUrl(userId ?? null);
+
+  // 가입 중 복귀였다면 2단계(성향 안내)의 결과 상태로
+  const inSignup = sessionStorage.getItem('resttime:signup:pending') === 'true';
+  if (captured && inSignup) {
+    return <Navigate to="/signup/personality" replace />;
+  }
+
+  // 기존 분기
   if (!hasSeenOnboarding()) {
     return <Navigate to="/onboarding" replace />;
   }
@@ -90,7 +108,12 @@ export default function Router() {
         <Route path="/bookmarks" element={<PrivateRoute><BookmarkPage /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
         <Route path="/withdrawal" element={<PrivateRoute><WithdrawalPage /></PrivateRoute>} />
+        <Route path="/signup/additional" element={<AdditionalInfoPage />} />
+        <Route path="/signup/personality" element={<PersonalitySignupPage />} />  {/* ← 추가 */}
 
+        <Route path="/signup/additional" element={<AdditionalInfoPage />} />
+        <Route path="/signup/personality" element={<PersonalitySignupPage />} />
+        <Route path="/signup/profile" element={<ProfileSignupPage />} />  {/* ← 추가 */}
         {/* 개발 전용: 공통 컴포넌트 시각 검증 */}
         <Route path="/components-test" element={<ComponentsTestPage />} />
       </Routes>
