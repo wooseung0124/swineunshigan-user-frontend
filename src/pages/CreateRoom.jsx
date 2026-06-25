@@ -91,6 +91,7 @@ export default function CreateRoom() {
 
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [showParticipantsModal, setShowParticipantsModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [showDuplicate, setShowDuplicate] = useState(false);
@@ -118,16 +119,16 @@ export default function CreateRoom() {
   };
 
   const handleConfirm = () => {
-    // 시간 객체 → "HH:mm"
+    if (isSubmitting) return;                    // ④ 연타 가드
+  
     const hh = String(selectedTime.hour).padStart(2, '0');
     const mm = String(selectedTime.minute).padStart(2, '0');
-
-    if (!placeId) {                          // ← 추가
+  
+    if (!placeId) {
       alert('장소를 먼저 선택해주세요');
       return;
     }
-
-    
+  
     const data = {
       title,
       description: activityPlan,
@@ -135,23 +136,30 @@ export default function CreateRoom() {
       scheduledAt: `${selectedDate} ${hh}:${mm}`,
       genderCondition: genderLimit.toUpperCase(),
       maxParticipants,
-      placeId,                    // ← place: {name, address} 대신
+      placeId,
     };
   
+    setIsSubmitting(true);
     api.schedules.create(data, currentUserId)
       .then(() => {
         setShowConfirm(false);
         setShowComplete(true);
       })
       .catch(err => {
-        if (err.code === 'DUPLICATE_DAY') {
+        // ② 중복 판정 — mock(err.code) + 실서버(errorCode/409) 둘 다
+        const isDuplicate =
+          err.code === 'DUPLICATE_DAY' ||
+          err.errorCode === 'DAILY_SCHEDULE_ALREADY_EXIST' ||
+          err.status === 409;
+        if (isDuplicate) {
           setShowConfirm(false);
-          setDuplicateInfo(err.existing);
+          setDuplicateInfo(err.existing || null);   // 실서버는 existing 안 줌 → null
           setShowDuplicate(true);
           return;
         }
         alert(err.message || '일정 개설에 실패했습니다.');
-      });
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   const chipStyle = (isActive) => ({
@@ -536,7 +544,7 @@ export default function CreateRoom() {
         </button>
         <button
           onClick={handleConfirm}
-          disabled={!canConfirm}
+          disabled={!canConfirm || isSubmitting}
           style={{
             flex: 1, padding: '14px',
             background: canConfirm ? '#A8DC4F' : '#eee',
@@ -602,8 +610,8 @@ export default function CreateRoom() {
   </div>
 )}
 
-      {/* 중복 개설 팝업 (하루 하나) */}
-      {showDuplicate && (
+{/* 중복 개설 팝업 (하루 하나) */}
+{showDuplicate && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200 }}>
           <div style={{ background: '#fff', borderRadius: '16px', padding: '28px 24px 24px', width: '85%', maxWidth: '360px' }}>
             <div style={{ textAlign: 'center', fontSize: '17px', fontWeight: 700, color: '#000', lineHeight: 1.5, marginBottom: '20px' }}>
@@ -620,6 +628,27 @@ export default function CreateRoom() {
 
             <button
               onClick={() => setShowDuplicate(false)}
+              style={{ width: '100%', padding: '15px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 개설 완료 모달 */}
+      {showComplete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '28px 24px 24px', width: '85%', maxWidth: '360px' }}>
+            <div style={{ textAlign: 'center', fontSize: '17px', fontWeight: 700, color: '#000', lineHeight: 1.5, marginBottom: '20px' }}>
+              일정이 개설되었어요
+            </div>
+
+            <button
+              onClick={() => {
+                setShowComplete(false);
+                navigate('/schedule');
+              }}
               style={{ width: '100%', padding: '15px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
             >
               확인
