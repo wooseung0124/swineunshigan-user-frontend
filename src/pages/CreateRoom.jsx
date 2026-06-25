@@ -74,9 +74,11 @@ function formatDup(scheduledAt) {
 export default function CreateRoom() {
   const navigate = useNavigate();
   const location = useLocation();
+  // 76-79행 근처 — placeId도 같이 꺼내기
   const place = location.state?.place;
-  const placeName = place?.name || place?.place_name || '프리모바치오바치 홍대본점';
-  const placeAddress = place?.address || place?.road_address_name || '서울특별시 마포구 홍익로 2길 27-22';
+  const placeId = place?.id;   // ← 추가
+  const placeName    = place?.name || '프리모바치오바치 홍대본점';
+  const placeAddress = place?.address || '서울특별시 마포구 홍익로 2길 27-22';
 
   
   const [title, setTitle] = useState('');
@@ -116,20 +118,24 @@ export default function CreateRoom() {
   };
 
   const handleConfirm = () => {
-    // 한글 카테고리 → 영문 enum
-    
     // 시간 객체 → "HH:mm"
     const hh = String(selectedTime.hour).padStart(2, '0');
     const mm = String(selectedTime.minute).padStart(2, '0');
-  
+
+    if (!placeId) {                          // ← 추가
+      alert('장소를 먼저 선택해주세요');
+      return;
+    }
+
+    
     const data = {
       title,
       description: activityPlan,
       category: selectedCategory,
       scheduledAt: `${selectedDate} ${hh}:${mm}`,
-      genderCondition: genderLimit.toUpperCase(),  // any → ANY
+      genderCondition: genderLimit.toUpperCase(),
       maxParticipants,
-      place: { name: placeName, address: placeAddress },
+      placeId,                    // ← place: {name, address} 대신
     };
   
     api.schedules.create(data, currentUserId)
