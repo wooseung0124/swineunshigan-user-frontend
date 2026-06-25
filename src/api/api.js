@@ -41,7 +41,20 @@ const request = async (endpoint, options = {}) => {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || `HTTP ${response.status}`);
+
+      // 인증 에러 → 자동 로그아웃 + 재로그인
+      if (['TOKEN_EXPIRED', 'UNAUTHORIZED', 'INVALID_TOKEN'].includes(error.errorCode)) {
+        setAuthToken(null);
+        localStorage.removeItem('auth-storage'); // persist 키 정리
+        if (window.location.pathname !== '/') {
+          window.location.replace('/');
+        }
+      }
+
+      const err = new Error(error.message || `HTTP ${response.status}`);
+      err.errorCode = error.errorCode;        // 소실되던 errorCode 보존
+      err.status = response.status;           // status도 보존
+      throw err;
     }
 
     return await response.json();
