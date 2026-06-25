@@ -4,8 +4,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { api } from '../api/api';          
 import { getPersonality } from '../utils/personality';
-
 const S3_READY = false;  // 재아님 S3 준비되면 true로
 
 function ProfileSignupPage() {
@@ -27,9 +27,18 @@ function ProfileSignupPage() {
   const handleComplete = async () => {
     setSubmitting(true);
     try {
-      const personality = getPersonality(userId);
-      // TODO(재아님 명세 확정 후): 이미지 API + profile 텍스트 API 연결
-      console.log('[signup] 완료 payload(예정):', { bio, personality, hasImage: !!imageFile });
+      const saved = getPersonality(userId);
+  
+      const payload = {};
+      if (bio.trim()) payload.bio = bio.trim();
+      if (saved?.connection && saved?.think) {
+        payload.personality = { connection: saved.connection, think: saved.think };
+      }
+  
+      await api.users.updateMyProfile(payload);
+      finishSignup();
+    } catch (e) {
+      console.error('[signup] 프로필 저장 실패:', e);
       finishSignup();
     } finally {
       setSubmitting(false);

@@ -209,8 +209,24 @@ export const api = {
       if (IS_MOCK) return mockDb.users.detail(id);
       return request(`/api/v1/users/${id}`);
     },
+  // GET /api/v1/users/me/profiles — 내 프로필 조회 (personality 포함)
+  myProfile: () => {
+    if (IS_MOCK) {
+      const id = getCurrentUserIdFromStorage();
+      return mockDb.users.detail(id);
+    }
+    return request('/api/v1/users/me/profiles');
   },
 
+  // PATCH /api/v1/users/me/profiles — 내 프로필 수정 (bio, personality 등)
+  updateMyProfile: (data) => {
+    if (IS_MOCK) {
+      const id = getCurrentUserIdFromStorage();
+      return mockDb.users.update(id, data);
+    }
+    return request('/api/v1/users/me/profiles', { method: 'PATCH', body: JSON.stringify(data) });
+  },
+}, 
   // 알림
   notifications: {
     list: () => {
