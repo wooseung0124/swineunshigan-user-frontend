@@ -54,6 +54,7 @@ const request = async (endpoint, options = {}) => {
       const err = new Error(error.message || `HTTP ${response.status}`);
       err.errorCode = error.errorCode;        // 소실되던 errorCode 보존
       err.status = response.status;           // status도 보존
+      err.existing = error.existing;          // 409 중복 시 기존 일정 정보 보존
       throw err;
     }
 
