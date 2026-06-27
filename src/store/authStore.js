@@ -18,8 +18,8 @@ export const useAuthStore = create(
       user: null,
       /** @type {string | null} */
       token: null,
-
-      // ----- actions -----
+      /** @type {boolean} rehydrate(localStorage 복원) 완료 여부 */
+      _hasHydrated: false,
       /**
        * 로그인: 토큰과 유저 정보를 저장하고 fetch용 토큰을 동기화한다.
        * @param {string} token
@@ -41,6 +41,8 @@ export const useAuthStore = create(
        * @param {import('../types/types').User} user
        */
       setUser: (user) => set({ user }),
+
+      setHasHydrated: (v) => set({ _hasHydrated: v }),
     }),
     {
       name: 'auth-storage',
@@ -50,6 +52,8 @@ export const useAuthStore = create(
         if (state?.token) {
           setAuthToken(state.token);
         }
+        state?.setHasHydrated(true);
+      
       },
     }
   )
@@ -67,6 +71,7 @@ export const useAuthStore = create(
 //   const { token } = useAuthStore.getState();
 // =============================================================
 export const selectIsAuthenticated = (s) => !!s.token;
+export const selectHasHydrated = (s) => s._hasHydrated;
 export const selectUser = (s) => s.user;
 export const selectLogin = (s) => s.login;
 export const selectLogout = (s) => s.logout;

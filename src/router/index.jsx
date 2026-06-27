@@ -37,6 +37,8 @@ import ProfileSignupPage from '../pages/ProfileSignupPage';
 
 function PrivateRoute({ children }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const hasHydrated = useAuthStore(selectHasHydrated);
+  if (!hasHydrated) return null;
   return isAuthenticated ? children : <Navigate to="/" />;
 }
 
@@ -71,6 +73,8 @@ function RootEntry() {
 
 function PublicRoute({ children }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const hasHydrated = useAuthStore(selectHasHydrated);
+  if (!hasHydrated) return null;
   return isAuthenticated ? <Navigate to="/home" /> : children;
 }
 
