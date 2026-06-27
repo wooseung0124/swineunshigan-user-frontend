@@ -19,7 +19,7 @@ import ScheduleCancelPage from '../pages/ScheduleCancelPage';
 import BookmarkPage from '../pages/BookmarkPage';
 import SettingsPage from '../pages/SettingsPage';
 import WithdrawalPage from '../pages/WithdrawalPage';
-import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
+import { useAuthStore, selectIsAuthenticated, selectHasHydrated } from '../store/authStore';
 import ProfilePage from '../pages/ProfilePage';
 import PersonalityPage from '../pages/PersonalityPage';
 import OnboardingPage from '../pages/OnboardingPage';
