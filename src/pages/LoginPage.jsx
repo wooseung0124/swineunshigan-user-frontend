@@ -82,8 +82,6 @@ export default function LoginPage() {
             gap: '12px',
           }}>
             <KakaoLoginButton />
-            <NaverLoginButton />
-            <GoogleLoginButton />
           </div>
 
           <button

@@ -262,7 +262,9 @@ export default function CreateRoom() {
         {/* 날짜 */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ color: '#000', fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>날짜</div>
-          <div style={{ fontSize: '13px', color: '#000', marginBottom: '8px' }}>4월</div>
+          <div style={{ fontSize: '13px', color: '#000', marginBottom: '8px' }}>
+  {selectedDate ? `${Number(selectedDate.split('-')[1])}월` : ''}
+</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px' }}>
             {DATES.map(d => (
               <div
@@ -636,26 +638,33 @@ export default function CreateRoom() {
         </div>
       )}
 
-      {/* 개설 완료 모달 */}
-      {showComplete && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200 }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '28px 24px 24px', width: '85%', maxWidth: '360px' }}>
-            <div style={{ textAlign: 'center', fontSize: '17px', fontWeight: 700, color: '#000', lineHeight: 1.5, marginBottom: '20px' }}>
-              일정이 개설되었어요
-            </div>
+{showComplete && (
+  <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200 }}>
+    <div style={{ background: '#fff', borderRadius: '16px', padding: '28px 24px 24px', width: '85%', maxWidth: '360px' }}>
+      <div style={{ textAlign: 'center', fontSize: '17px', fontWeight: 700, color: '#000', lineHeight: 1.5, marginBottom: '20px' }}>
+        일정이 개설되었어요
+      </div>
 
-            <button
-              onClick={() => {
-                setShowComplete(false);
-                navigate('/schedule');
-              }}
-              style={{ width: '100%', padding: '15px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
+      <div style={{ fontSize: '13px', fontWeight: 700, color: '#000', marginBottom: '10px' }}>내가 개설한 일정</div>
+      <div style={{ background: '#f7f7f7', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
+        <Row label="일시" value={`${selectedDate} ${String(selectedTime.hour).padStart(2,'0')}:${String(selectedTime.minute).padStart(2,'0')}`} />
+        <Row label="장소" value={placeName || '-'} />
+        <Row label="모집인원" value={`1/${maxParticipants}명`} />
+        <Row label="카테고리" value={SCHEDULE_CATEGORY_LABEL[selectedCategory] || '-'} last />
+      </div>
+
+      <button
+        onClick={() => {
+          setShowComplete(false);
+          navigate('/schedule');
+        }}
+        style={{ width: '100%', padding: '15px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
+      >
+        확인
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }

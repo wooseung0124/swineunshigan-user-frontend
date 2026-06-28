@@ -96,7 +96,7 @@ export const api = {
     list: (filters = {}) => {
       if (IS_MOCK) return mockDb.schedules.list();
       const params = new URLSearchParams(filters).toString();
-      return request(`/api/v1/schedules${params ? '?' + params : ''}`);
+      return request(`/api/v1/schedules/me${params ? '?' + params : ''}`);
     },
     listByPlace: (placeId) => {
       if (IS_MOCK) return mockDb.schedules.listByPlace(placeId);
