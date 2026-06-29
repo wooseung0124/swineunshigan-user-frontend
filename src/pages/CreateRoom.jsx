@@ -414,7 +414,7 @@ export default function CreateRoom() {
         {/* 일정 개설하기 */}
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={() => setShowConfirm(true)}
           style={{
             width: '100%',
             background: '#A8DC4F',
