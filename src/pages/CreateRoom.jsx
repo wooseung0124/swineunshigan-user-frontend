@@ -104,31 +104,27 @@ export default function CreateRoom() {
 
   const [policyChecked, setPolicyChecked] = useState(false);    // 체크박스
   const [policyDetailAgreed, setPolicyDetailAgreed] = useState(false);  // 자세히보기 동의
-  const canConfirm = policyChecked || policyDetailAgreed;
+  const canConfirm = policyChecked;
 
 
   const genderLabel = GENDER_OPTIONS.find(g => g.value === genderLimit)?.label || '무관';
 
-  const handleSubmit = () => {
-    document.activeElement?.blur();
-    if (!title) {
-      alert('제목을 입력해주세요.');
+  const handleConfirm = () => {
+    if (isSubmitting) return;
+
+    if (!policyChecked) {
+      alert('서비스 운영 방침에 동의해주세요.');
       return;
     }
-    setShowConfirm(true);
-  };
 
-  const handleConfirm = () => {
-    if (isSubmitting) return;                    // ④ 연타 가드
-  
     const hh = String(selectedTime.hour).padStart(2, '0');
     const mm = String(selectedTime.minute).padStart(2, '0');
-  
+
     if (!placeId) {
       alert('장소를 먼저 선택해주세요');
       return;
     }
-  
+
     const data = {
       title,
       description: activityPlan,
@@ -138,7 +134,7 @@ export default function CreateRoom() {
       maxParticipants,
       placeId,
     };
-  
+
     setIsSubmitting(true);
     api.schedules.create(data, currentUserId)
       .then(() => {
@@ -146,21 +142,20 @@ export default function CreateRoom() {
         setShowComplete(true);
       })
       .catch(err => {
-        // ② 중복 판정 — mock(err.code) + 실서버(errorCode/409) 둘 다
         const isDuplicate =
           err.code === 'DUPLICATE_DAY' ||
           err.errorCode === 'DAILY_SCHEDULE_ALREADY_EXIST' ||
           err.status === 409;
         if (isDuplicate) {
           setShowConfirm(false);
-          setDuplicateInfo(err.existing || null);   // 실서버는 existing 안 줌 → null
+          setDuplicateInfo(err.existing || null);
           setShowDuplicate(true);
           return;
         }
         alert(err.message || '일정 개설에 실패했습니다.');
       })
       .finally(() => setIsSubmitting(false));
-  };
+};
 
   const chipStyle = (isActive) => ({
     padding: '10px 18px',
