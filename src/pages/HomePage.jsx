@@ -6,6 +6,7 @@ import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-map
 import { useAuthStore, selectIsAuthenticated } from '../store/authStore';
 import MapControlButton from '../components/map/MapControlButton';
 import OnboardingPermissionPage from './OnboardingPermissionPage';
+import { api } from '../api/api';
 
 const containerStyle = {
   width: '100%',
@@ -106,7 +107,7 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   const navigate = useNavigate();
   const [hoveredPlace, setHoveredPlace] = useState(null);
-
+  const [places, setPlaces] = useState([]);
   const [showPermission, setShowPermission] = useState(false);
 
   useEffect(() => {
@@ -114,6 +115,20 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
       localStorage.removeItem('resttime:permission:pending');
       setShowPermission(true);
     }
+  }, []);
+
+  useEffect(() => {
+    api.places.list()
+      .then((res) => {
+        // 반환이 배열이면 res, { places } 형태면 res.places
+        const list = Array.isArray(res) ? res : (res?.places ?? []);
+        setPlaces(list);
+        console.log('[places.list] 로드됨:', list.length);
+      })
+      .catch((err) => {
+        console.error('[places.list] 실패:', err);
+        setPlaces([]);
+      });
   }, []);
 
   const onLoad = useCallback((mapInstance) => {
@@ -126,13 +141,13 @@ const [detailPlace, setDetailPlace] = useState(null);       // 슬라이드 패�
 
   // 필터링 로직
   const filteredPlaces = filter
-  ? DUMMY_PLACES.filter(place => place.category?.name === filter)
-  : [];  // 필터 안 누르면 핑 없음
+  ? places.filter(place => place.category?.name === filter)
+  : [];
 
   // 검색 (더미 데이터에서 이름으로 검색)
   const handleSearch = () => {
     if (!searchKeyword) return;
-    const found = DUMMY_PLACES.find(p => p.name.includes(searchKeyword));
+    const found = places.find(p => p.name.includes(searchKeyword));
     if (found && map) {
       map.panTo({ lat: found.latitude, lng: found.longitude });
       setSelectedPlace(found);
