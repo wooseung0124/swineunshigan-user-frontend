@@ -54,7 +54,7 @@ export default function AdditionalInfoPage() {
         }
         login(data.token.accessToken, data.user);
         promotePendingToUser(data.user.id);
-        navigate('/home');
+        navigate('/signup/personality');
       })
       .catch(() => {
         alert('가입에 실패했습니다. 다시 시도해 주세요.');
