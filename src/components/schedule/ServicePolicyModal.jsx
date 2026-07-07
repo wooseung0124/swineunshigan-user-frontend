@@ -59,7 +59,7 @@ export default function ServicePolicyModal({ open, onClose, onAgree }) {
 
             <p style={S.detailFoot}>서비스 운영 방침에 동의해야 일정을 참여할 수 있어요.</p>
             <button
-              onClick={() => { setDetailAgreed(true); setDetailOpen(false); }}
+              onClick={() => { setDetailAgreed(true); setChecked(true); setDetailOpen(false); }}
               style={S.detailAgreeBtn}
             >
               동의하기

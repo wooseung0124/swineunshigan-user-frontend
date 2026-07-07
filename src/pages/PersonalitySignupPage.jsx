@@ -41,7 +41,6 @@ function PersonalitySignupPage() {
     <div>
       <p>이향인 성향 테스트를 통해 나에 대해 더 알아봐요</p>
       <button onClick={startTest}>테스트 시작하기</button>
-      <button onClick={goNext}>다음에 할게요</button>
     </div>
   );
 }

@@ -112,8 +112,15 @@ export const PERSONALITY_CONNECTION_DESC = {
   GJ: '쉽게 가까워지지 않는 것처럼 보일 수 있지만, 본질은 관계를 가볍게 보지 않기 때문에 속도를 신중히 조절하는 데 있다. 한번 신뢰가 형성되면 관계는 얕지 않고 오래 지속된다.',
 };
 
-
-
+// connection 코드별 추천문구 (가입 3/3 자기소개 화면 노란박스용)
+export const PERSONALITY_CONNECTION_RECOMMEND = {
+  BM: '경계가 지켜질 때 가장 자연스럽게 연결되는 사람입니다.',
+  BG: '납득이 되면 바로 움직이는 실용형 연결러입니다.',
+  JM: '편안함이 생기면 천천히 가까워지는 사람입니다.',
+  GT: '사람과 사람 사이의 지도를 직접 그려 나가는 확장형입니다.',
+  DS: '같이 할 일이 있어야 마음이 붙는 경험형 연결러입니다.',
+  GJ: '마음이 없어서가 아니라, 관계를 소중히 여겨 천천히 여는 사람입니다',
+};
 
 /** 일정 상태 */
 export const SCHEDULE_STATUS = {
@@ -148,6 +155,15 @@ export const PERSONALITY_THINK_ALIAS = {
   EVALUATION: '경험의 질을 평가하는 자',
 };
 
+// think 코드별 추천문구 (가입 3/3 자기소개 화면 노란박스용)
+export const PERSONALITY_THINK_RECOMMEND = {
+  ESSENCE: '보이지 않는 것을 보고, 서두르지 않고 관찰한 뒤 움직입니다.',
+  CONDITION: '이유 없는 연결보다, 설명 가능한 연결을 더 신뢰합니다.',
+  DEFINITION: '관계를 빨리 정의하기보다, 천천히 기록하며 감도를 키웁니다.',
+  INTUITION: '내면을 통해 진정성을 느끼고, 그 느낌을 바탕으로 결정합니다.',
+  RESPONSIBILITY: '고통을 비교나 하소연으로 풀지 않고, 혼자 견디며 감당하는 사람입니다.',
+  EVALUATION: '관계의 결과를 되짚어보고, 그 경험이 내·타인에게 어떤 영향을 줬는지 평가합니다.',
+};
 
 // think 코드별 설명 문단
 export const PERSONALITY_THINK_DESC = {
