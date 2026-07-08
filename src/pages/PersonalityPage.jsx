@@ -21,6 +21,7 @@ export default function PersonalityPage() {
   }, []);
 
   const handleRetest = () => {
+    sessionStorage.setItem('resttime:personality:from', 'mypage');
     window.location.href = PERSONALITY_TEST_URL;
   };
 

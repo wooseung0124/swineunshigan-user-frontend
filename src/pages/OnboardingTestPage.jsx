@@ -4,6 +4,7 @@ import { PERSONALITY_TEST_URL } from '../utils/personality';
 export default function OnboardingTestPage() {
   const handleStartTest = () => {
     markOnboardingSeen(); // 외부로 나가면 앱을 떠나므로, 여기서 본 것으로 간주
+    sessionStorage.setItem('resttime:personality:from', 'onboarding');
     window.location.href = PERSONALITY_TEST_URL;
   };
 

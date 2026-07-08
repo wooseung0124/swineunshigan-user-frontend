@@ -40,6 +40,7 @@ export default function OnboardingPage() {
     if (isLast) {
       // 마지막: 성향 테스트(외부)로
       markOnboardingSeen();
+      sessionStorage.setItem('resttime:personality:from', 'onboarding');
       window.location.href = PERSONALITY_TEST_URL;
     } else {
       setStep((s) => s + 1);

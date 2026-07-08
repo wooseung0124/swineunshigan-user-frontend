@@ -55,8 +55,18 @@ function RootEntry() {
 
   // 가입 중 복귀였다면 2단계(성향 안내)의 결과 상태로
   const inSignup = sessionStorage.getItem('resttime:signup:pending') === 'true';
+  const from = sessionStorage.getItem('resttime:personality:from');
+
   if (captured && inSignup) {
     return <Navigate to="/signup/personality" replace />;
+  }
+  if (captured && from === 'onboarding') {
+    sessionStorage.removeItem('resttime:personality:from');
+    return <Navigate to="/onboarding/permission" replace />;
+  }
+  if (captured && from === 'mypage') {
+    sessionStorage.removeItem('resttime:personality:from');
+    return <Navigate to="/personality" replace />;
   }
 
   // 기존 분기

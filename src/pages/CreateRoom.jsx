@@ -636,27 +636,42 @@ export default function CreateRoom() {
 {showComplete && (
   <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200 }}>
     <div style={{ background: '#fff', borderRadius: '16px', padding: '28px 24px 24px', width: '85%', maxWidth: '360px' }}>
-      <div style={{ textAlign: 'center', fontSize: '17px', fontWeight: 700, color: '#000', lineHeight: 1.5, marginBottom: '20px' }}>
-        일정이 개설되었어요
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="24" fill="#222" />
+          <path d="M15 24.5L21 30.5L33 18.5" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </div>
 
-      <div style={{ fontSize: '13px', fontWeight: 700, color: '#000', marginBottom: '10px' }}>내가 개설한 일정</div>
+      <div style={{ textAlign: 'center', fontSize: '17px', fontWeight: 700, color: '#000', lineHeight: 1.5, marginBottom: '6px' }}>
+        일정이 개설 되었어요
+      </div>
+      <div style={{ textAlign: 'center', fontSize: '13px', color: '#999', marginBottom: '20px' }}>
+        운영 방침을 꼭 지켜주세요
+      </div>
+
       <div style={{ background: '#f7f7f7', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
-        <Row label="일시" value={`${selectedDate} ${String(selectedTime.hour).padStart(2,'0')}:${String(selectedTime.minute).padStart(2,'0')}`} />
         <Row label="장소" value={placeName || '-'} />
-        <Row label="모집인원" value={`1/${maxParticipants}명`} />
-        <Row label="카테고리" value={SCHEDULE_CATEGORY_LABEL[selectedCategory] || '-'} last />
+        <Row label="카테고리" value={SCHEDULE_CATEGORY_LABEL[selectedCategory] || '-'} />
+        <Row label="일시" value={`${selectedDate} ${String(selectedTime.hour).padStart(2,'0')}:${String(selectedTime.minute).padStart(2,'0')}`} />
+        <Row label="모집인원" value={`1/${maxParticipants}명`} last />
       </div>
 
-      <button
-        onClick={() => {
-          setShowComplete(false);
-          navigate('/schedule');
-        }}
-        style={{ width: '100%', padding: '15px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}
-      >
-        확인
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => { setShowComplete(false); navigate('/home'); }}
+          style={{ flex: 1, padding: '15px', background: '#fff', border: '1px solid #ddd', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', color: '#000' }}
+        >
+          홈으로
+        </button>
+        <button
+          onClick={() => { setShowComplete(false); navigate('/schedule'); }}
+          style={{ flex: 1, padding: '15px', background: '#A8DC4F', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', color: '#000' }}
+        >
+          일정 보러가기
+        </button>
+      </div>
     </div>
   </div>
 )}
