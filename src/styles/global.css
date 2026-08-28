@@ -49,6 +49,20 @@ html.login-route #root {
   overflow-x: visible;
 }
 
+html.app-route {
+  background: var(--color-gray-100);
+}
+
+html.app-route body {
+  background: var(--color-gray-100);
+}
+
+html.app-route #root {
+  width: 100%;
+  max-width: none;
+  background: var(--color-gray-100);
+}
+
 button,
 input,
 textarea,

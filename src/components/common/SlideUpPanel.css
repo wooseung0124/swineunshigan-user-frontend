@@ -15,8 +15,13 @@
   z-index: 1000;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: var(--layout-max-width);
   max-height: min(56vh, 420px);
-  padding: var(--space-4) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
+  margin: 0 auto;
+  padding: var(--space-4) max(var(--space-5), var(--safe-area-left))
+    calc(var(--space-5) + var(--safe-area-bottom))
+    max(var(--space-5), var(--safe-area-right));
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background: var(--color-gray-0);
   box-shadow: var(--shadow-lg);

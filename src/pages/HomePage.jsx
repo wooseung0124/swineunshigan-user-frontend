@@ -33,6 +33,9 @@ export default function HomePage() {
   );
 
   useEffect(() => {
+    let resizeObserver;
+    let relayoutMap;
+
     loadKakaoMap().then(() => {
       if (!mapRef.current || mapInstanceRef.current) return;
 
@@ -42,7 +45,22 @@ export default function HomePage() {
       });
 
       mapInstanceRef.current = mapInstance;
+
+      relayoutMap = () => {
+        mapInstance.relayout();
+      };
+
+      window.addEventListener('resize', relayoutMap);
+      resizeObserver = new ResizeObserver(relayoutMap);
+      resizeObserver.observe(mapRef.current);
     });
+
+    return () => {
+      if (relayoutMap) {
+        window.removeEventListener('resize', relayoutMap);
+      }
+      resizeObserver?.disconnect();
+    };
   }, []);
 
   const clearMarkers = () => {
