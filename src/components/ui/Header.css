@@ -1,0 +1,83 @@
+.ui-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-gray-0);
+}
+
+.ui-header--white {
+  background: transparent;
+}
+
+.ui-header__side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 40px;
+}
+
+.ui-header__side--right {
+  justify-content: flex-end;
+}
+
+.ui-header__title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-h1-size);
+  font-weight: var(--text-h1-weight);
+  line-height: var(--text-h1-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+  text-align: center;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-header--white .ui-header__title {
+  color: var(--color-gray-0);
+}
+
+.ui-header__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ui-header--white .ui-header__icon-btn {
+  color: var(--color-gray-0);
+}
+
+.ui-header__icon-btn:hover {
+  background: var(--color-gray-100);
+}
+
+.ui-header--white .ui-header__icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ui-header__text-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-b3-size);
+  font-weight: var(--text-b3-weight);
+  line-height: var(--text-b3-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+  padding: var(--space-1);
+}
+
+.ui-header--white .ui-header__text-btn {
+  color: var(--color-gray-0);
+}

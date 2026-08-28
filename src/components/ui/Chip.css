@@ -1,0 +1,40 @@
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-lg);
+  background: var(--color-gray-0);
+  color: var(--color-gray-700);
+  font-size: var(--text-b3-size);
+  font-weight: var(--text-b3-weight);
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-tight);
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ui-chip--selected {
+  background: var(--color-primary-400);
+  border-color: var(--color-primary-400);
+  color: var(--color-gray-900);
+  font-weight: var(--text-b5-weight);
+}
+
+.ui-chip--disabled {
+  background: var(--color-gray-200);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+}
+
+.ui-chip:not(:disabled):not(.ui-chip--selected):hover {
+  background: var(--color-gray-50);
+}
+
+.ui-chip:not(:disabled):active {
+  background: var(--color-primary-300);
+  border-color: var(--color-primary-300);
+}
