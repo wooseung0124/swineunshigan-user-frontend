@@ -1,11 +1,10 @@
 import BottomNav from './BottomNav';
+import './Layout.css';
 
 export default function Layout({ children }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
-      <main style={{ flex: 1, overflow: 'hidden' }}>
-        {children}
-      </main>
+    <div className="app-layout">
+      <main className="app-layout__main">{children}</main>
       <BottomNav />
     </div>
   );

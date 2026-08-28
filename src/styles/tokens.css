@@ -80,5 +80,15 @@
   /* Layout */
   --layout-max-width: 390px;
   --header-height: 52px;
-  --bottom-nav-height: 56px;
+  --bottom-nav-height: 64px;
+  --bottom-nav-bottom-offset: 60px;
+  --home-controls-top: 64px;
+  --home-search-categories-gap: 16px;
+  --map-locate-above-nav: 64px;
+  --map-controls-gap: 12px;
+  --home-search-input-padding-y: 7.5px;
+  --home-search-height: calc(
+    var(--home-search-input-padding-y) * 2 +
+      var(--text-b3-size) * var(--text-b3-line-height)
+  );
 }

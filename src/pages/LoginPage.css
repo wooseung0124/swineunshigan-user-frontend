@@ -47,7 +47,10 @@
 }
 
 .login-page__hero {
-  max-width: 320px;
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+  text-align: left;
 }
 
 .login-page__brand {

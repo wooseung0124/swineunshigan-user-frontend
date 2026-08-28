@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import SlideUpPanel from '../components/common/SlideUpPanel';
-import FilterBar from '../components/common/FilterBar';
+import { IconSearch } from '../components/common/NavIcons';
+import searchBrandIcon from '../assets/search-brand-icon.png';
+import './HomePage.css';
+
+const CATEGORY_OPTIONS = ['카페', '음식점', '문화시설', '레포츠'];
+const SEARCH_TIP_KEY = 'home_search_tip_dismissed';
 
 const loadKakaoMap = () => {
   return new Promise((resolve) => {
@@ -8,6 +13,7 @@ const loadKakaoMap = () => {
       resolve();
       return;
     }
+
     const script = document.createElement('script');
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
     script.onload = () => window.kakao.maps.load(resolve);
@@ -17,175 +23,209 @@ const loadKakaoMap = () => {
 
 export default function HomePage() {
   const mapRef = useRef(null);
-  const [map, setMap] = useState(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedPlace, setSelectedPlace] = useState(null);
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const [showSearchTip, setShowSearchTip] = useState(
+    () => sessionStorage.getItem(SEARCH_TIP_KEY) !== 'true',
+  );
 
   useEffect(() => {
     loadKakaoMap().then(() => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || mapInstanceRef.current) return;
+
       const mapInstance = new window.kakao.maps.Map(mapRef.current, {
         center: new window.kakao.maps.LatLng(37.5447, 127.0557),
         level: 4,
       });
-      setMap(mapInstance);
+
+      mapInstanceRef.current = mapInstance;
     });
   }, []);
 
-  const handleSearch = () => {
-    if (!map || !searchKeyword) return;
+  const clearMarkers = () => {
+    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current = [];
+  };
+
+  const searchPlaces = (keyword) => {
+    const map = mapInstanceRef.current;
+    if (!map || !keyword.trim()) return;
+
     const ps = new window.kakao.maps.services.Places();
-    ps.keywordSearch(searchKeyword, (data, status) => {
-      if (status === window.kakao.maps.services.Status.OK) {
-        const bounds = new window.kakao.maps.LatLngBounds();
-        data.forEach(place => {
-          const marker = new window.kakao.maps.Marker({
-            map,
-            position: new window.kakao.maps.LatLng(place.y, place.x),
-            title: place.place_name,
-          });
+    ps.keywordSearch(keyword.trim(), (data, status) => {
+      if (status !== window.kakao.maps.services.Status.OK) return;
 
-          // 마커 클릭 시 슬라이드 업 패널 열기
-          window.kakao.maps.event.addListener(marker, 'click', () => {
-            setSelectedPlace(place);
-          });
+      clearMarkers();
 
-          bounds.extend(new window.kakao.maps.LatLng(place.y, place.x));
+      const bounds = new window.kakao.maps.LatLngBounds();
+      data.forEach((place) => {
+        const marker = new window.kakao.maps.Marker({
+          map,
+          position: new window.kakao.maps.LatLng(place.y, place.x),
+          title: place.place_name,
         });
-        map.setBounds(bounds);
-      }
+
+        window.kakao.maps.event.addListener(marker, 'click', () => {
+          setSelectedPlace(place);
+        });
+
+        markersRef.current.push(marker);
+        bounds.extend(new window.kakao.maps.LatLng(place.y, place.x));
+      });
+
+      map.setBounds(bounds);
     });
   };
 
+  const handleSearch = () => {
+    searchPlaces(searchKeyword);
+  };
+
+  const handleCategorySelect = (category) => {
+    const nextCategory = selectedCategory === category ? null : category;
+    setSelectedCategory(nextCategory);
+
+    if (nextCategory) {
+      setSearchKeyword(nextCategory);
+      searchPlaces(nextCategory);
+    }
+  };
+
+  const dismissSearchTip = () => {
+    setShowSearchTip(false);
+    sessionStorage.setItem(SEARCH_TIP_KEY, 'true');
+  };
+
+  const handleZoomIn = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    map.setLevel(map.getLevel() - 1);
+  };
+
+  const handleCurrentLocation = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (!navigator.geolocation) {
+      alert('위치 정보를 가져올 수 없습니다.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const locPosition = new window.kakao.maps.LatLng(
+          pos.coords.latitude,
+          pos.coords.longitude,
+        );
+
+        map.setCenter(locPosition);
+
+        const marker = new window.kakao.maps.Marker({
+          map,
+          position: locPosition,
+          title: '내 위치',
+        });
+
+        markersRef.current.push(marker);
+      },
+      () => {
+        alert('위치 정보를 가져올 수 없습니다.');
+      },
+    );
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{
-        padding: '12px 16px',
-        display: 'flex',
-        gap: '8px',
-        background: '#fff',
-        borderBottom: '1px solid #eee',
-        alignItems: 'center',
-      }}>
-        <input
-          type="text"
-          value={searchKeyword}
-          onChange={e => setSearchKeyword(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSearch()}
-          placeholder="위치 및 가게 검색"
-          style={{
-            flex: 1,
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: '1px solid #ddd',
-            fontSize: '14px',
-          }}
+    <div className="home-page">
+      <div ref={mapRef} className="home-page__map" aria-label="지도" />
+
+      <div className="home-page__controls">
+        <div className="home-page__search-row">
+          <form
+            className="home-page__search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSearch();
+            }}
+          >
+            <img className="home-page__brand" src={searchBrandIcon} alt="" />
+            <input
+              type="search"
+              className="home-page__search-input"
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder="가고싶은 장소를 입력해 주세요"
+              aria-label="가고싶은 장소를 입력해 주세요"
+            />
+            <button type="submit" className="home-page__search-icon-btn" aria-label="검색">
+              <IconSearch />
+            </button>
+          </form>
+
+          <button
+            type="button"
+            className="home-page__round-btn home-page__notify-btn"
+            onClick={() => alert('알림 목록 페이지 연결 예정')}
+            aria-label="알림"
+          />
+        </div>
+
+        <div className="home-page__categories" role="tablist" aria-label="장소 카테고리">
+          {CATEGORY_OPTIONS.map((category) => (
+            <button
+              key={category}
+              type="button"
+              role="tab"
+              aria-selected={selectedCategory === category}
+              className={`home-page__category${selectedCategory === category ? ' home-page__category--active' : ''}`}
+              onClick={() => handleCategorySelect(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {showSearchTip && (
+          <div className="home-page__tip">
+            <span className="home-page__tip-arrow" aria-hidden="true">
+              <svg width="18" height="9" viewBox="0 0 18 9" fill="none">
+                <path
+                  d="M9 1.2C6.1 1.2 4.1 4.6 2.6 7.1C2.2 7.8 2.7 8.6 3.5 8.6H14.5C15.3 8.6 15.8 7.8 15.4 7.1C13.9 4.6 11.9 1.2 9 1.2Z"
+                  fill="var(--color-gray-800)"
+                />
+              </svg>
+            </span>
+            <p className="home-page__tip-text">어떤 장소를 찾고계신가요~?</p>
+            <button
+              type="button"
+              className="home-page__tip-close"
+              onClick={dismissSearchTip}
+              aria-label="안내 닫기"
+            >
+              ×
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="home-page__map-controls">
+        <button
+          type="button"
+          className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--zoom"
+          onClick={handleZoomIn}
+          aria-label="지도 확대"
         />
         <button
-          onClick={handleSearch}
-          style={{
-            padding: '10px 16px',
-            background: '#FEE500',
-            border: 'none',
-            borderRadius: '10px',
-            fontWeight: '600',
-            cursor: 'pointer',
-          }}
-        >
-          검색
-        </button>
-
-        {/* 알림 버튼 */}
-        <button
-          onClick={() => alert('알림 목록 페이지 연결 예정')}
-          style={{
-            position: 'relative',
-            background: 'none',
-            border: 'none',
-            fontSize: '24px',
-            cursor: 'pointer',
-            padding: '4px',
-          }}
-        >
-          🔔
-          <span style={{
-            position: 'absolute',
-            top: '0',
-            right: '0',
-            background: '#ff3b30',
-            color: '#fff',
-            fontSize: '11px',
-            fontWeight: '700',
-            borderRadius: '50%',
-            width: '18px',
-            height: '18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            3
-          </span>
-          </button>
+          type="button"
+          className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--locate"
+          onClick={handleCurrentLocation}
+          aria-label="현재 위치로 이동"
+        />
       </div>
 
-{/* 필터바 */}
-<div style={{
-        padding: '8px 16px',
-        background: '#111',
-      }}>
-        <FilterBar onFilterChange={(filters) => console.log('필터:', filters)} />
-      </div>
-
-      <div ref={mapRef} style={{ flex: 1, width: '100%', position: 'relative' }}>
-        {/* 현재 위치 버튼 */}
-        <button
-          onClick={() => {
-            if (!map) return;
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                const locPosition = new window.kakao.maps.LatLng(lat, lng);
-                map.setCenter(locPosition);
-
-                new window.kakao.maps.Marker({
-                  map,
-                  position: locPosition,
-                  title: '내 위치',
-                });
-              }, () => {
-                alert('위치 정보를 가져올 수 없습니다.');
-              });
-            }
-          }}
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            right: '16px',
-            width: '44px',
-            height: '44px',
-            borderRadius: '50%',
-            background: '#fff',
-            border: '1px solid #ddd',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            fontSize: '20px',
-            cursor: 'pointer',
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          📍
-        </button>
-      </div>
-
-      <SlideUpPanel
-        place={selectedPlace}
-        onClose={() => setSelectedPlace(null)}
-      />
+      <SlideUpPanel place={selectedPlace} onClose={() => setSelectedPlace(null)} />
     </div>
   );
 }

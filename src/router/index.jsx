@@ -28,8 +28,8 @@ export default function Router() {
         <Route path="/auth/naver/callback" element={<NaverCallback />} />
         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
         <Route path="/home" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
-        <Route path="/schedule" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>일정현황</div></Layout></PrivateRoute>} />
-        <Route path="/curation" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>큐레이션</div></Layout></PrivateRoute>} />
+        <Route path="/schedule" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>일정</div></Layout></PrivateRoute>} />
+        <Route path="/verify" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>인증하기</div></Layout></PrivateRoute>} />
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
         <Route path="/mypage" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>마이페이지</div></Layout></PrivateRoute>} />
       </Routes>
