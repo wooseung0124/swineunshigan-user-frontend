@@ -1,0 +1,84 @@
+:root {
+  /* Primary */
+  --color-primary-50: #f1f7e8;
+  --color-primary-100: #ddebc5;
+  --color-primary-200: #c6dea1;
+  --color-primary-300: #b0d17b;
+  --color-primary-400: #9fc75e;
+  --color-primary-500: #8ebd41;
+  --color-primary-600: #7fae3a;
+  --color-primary-700: #6b9a30;
+  --color-primary-800: #578627;
+  --color-primary-900: #356516;
+
+  /* Secondary */
+  --color-secondary-500: #99bd23;
+
+  /* Gray */
+  --color-gray-0: #ffffff;
+  --color-gray-50: #fbfbf9;
+  --color-gray-100: #f6f6f4;
+  --color-gray-200: #f0f0ef;
+  --color-gray-300: #e3e3e2;
+  --color-gray-400: #c1c1bf;
+  --color-gray-500: #a2a2a1;
+  --color-gray-600: #797978;
+  --color-gray-700: #656563;
+  --color-gray-800: #454544;
+  --color-gray-900: #242423;
+  --color-gray-1000: #000000;
+
+  /* Badge */
+  --color-badge-cancel-text: #ff6c6c;
+  --color-badge-cancel-bg: #ffe5e5;
+  --color-badge-open-bg: #ebebff;
+  --color-badge-open-text: #474aff;
+  --color-badge-coming: #20a200;
+  --color-badge-late: #c517c8;
+  --color-badge-waiting: #ffc300;
+  --color-badge-arrived: #000dff;
+  --color-badge-absent: #ff000d;
+
+  /* Others */
+  --color-text-highlight: #caf1a2;
+
+  /* Semantic aliases */
+  --color-bg: var(--color-gray-0);
+  --color-bg-subtle: var(--color-gray-50);
+  --color-bg-muted: var(--color-gray-100);
+  --color-border: var(--color-gray-300);
+  --color-border-strong: var(--color-gray-400);
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-500);
+  --color-text-inverse: var(--color-gray-0);
+  --color-brand: var(--color-primary-500);
+  --color-brand-strong: var(--color-primary-700);
+  --color-accent: var(--color-secondary-500);
+
+  /* Spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(36, 36, 35, 0.06);
+  --shadow-md: 0 4px 12px rgba(36, 36, 35, 0.08);
+  --shadow-lg: 0 8px 24px rgba(36, 36, 35, 0.12);
+
+  /* Layout */
+  --layout-max-width: 390px;
+  --header-height: 52px;
+  --bottom-nav-height: 56px;
+}
