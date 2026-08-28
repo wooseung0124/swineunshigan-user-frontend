@@ -32,6 +32,21 @@ body {
   min-height: 100svh;
   margin: 0 auto;
   background: var(--color-bg);
+  overflow-x: hidden;
+}
+
+html.login-route {
+  overflow: hidden;
+}
+
+html.login-route body {
+  overflow: hidden;
+  background: var(--color-gray-0);
+}
+
+html.login-route #root {
+  max-width: none;
+  overflow-x: visible;
 }
 
 button,

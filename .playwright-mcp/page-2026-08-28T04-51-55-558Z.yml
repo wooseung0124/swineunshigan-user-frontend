@@ -1,0 +1,11 @@
+- generic [ref=f6e3]:
+  - region [ref=f6e4]:
+    - generic [ref=f6e5]: 쉬
+    - heading "혼자도, 같이도 괜찮은 시간 '쉬는시간'" [level=1] [ref=f6e13]:
+      - text: 혼자도, 같이도 괜찮은 시간
+      - generic [ref=f6e14]: "'쉬는시간'"
+    - paragraph [ref=f6e15]: 문득 누군가와 함께하고 싶은 순간, 가볍게 약속을 열어보세요.혼자도 좋고, 함께라면 더 좋은 시간.당신의 평범한 순간에 작은 동행을 더해보세요.
+  - region "소셜 로그인" [ref=f6e16]:
+    - button "카카오로 시작하기" [ref=f6e17] [cursor=pointer]
+    - button "네이버로 시작하기" [ref=f6e18] [cursor=pointer]
+    - paragraph [ref=f6e19]: 로그인 시 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.

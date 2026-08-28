@@ -1,0 +1,19 @@
+- generic [ref=f11e3]:
+  - region [ref=f11e4]:
+    - img "쉬는시간" [ref=f11e5]
+    - heading "작은 결심이 필요한 순간, 쉬는시간" [level=1] [ref=f11e6]: 작은 결심이 필요한 순간,쉬는시간
+    - paragraph [ref=f11e7]: 나만의 속도로, 망설임 없이 시작해보세요
+  - region "로그인 및 안내" [ref=f11e8]:
+    - generic [ref=f11e9]:
+      - button "카카오 로그인" [ref=f11e10] [cursor=pointer]
+      - button "네이버 로그인" [ref=f11e11] [cursor=pointer]
+      - button "구글 로그인" [ref=f11e12] [cursor=pointer]
+    - button "로그인 하지 않고 둘러보기" [ref=f11e13] [cursor=pointer]
+    - paragraph [ref=f11e14]:
+      - text: 로그인 하시면
+      - link "개인정보방침처리" [ref=f11e15] [cursor=pointer]:
+        - /url: /privacy
+      - text: 및
+      - link "이용약관" [ref=f11e16] [cursor=pointer]:
+        - /url: /terms
+      - text: 에 동의하는 것으로 간주됩니다

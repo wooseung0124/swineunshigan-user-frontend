@@ -8,10 +8,11 @@ import CreateRoom from '../pages/CreateRoom';
 
 // 로그인 여부 확인
 const isLoggedIn = () => !!localStorage.getItem('token');
+const isGuest = () => sessionStorage.getItem('guest') === 'true';
 
 // 로그인 안 되어 있으면 로그인 페이지로
 function PrivateRoute({ children }) {
-  return isLoggedIn() ? children : <Navigate to="/" />;
+  return isLoggedIn() || isGuest() ? children : <Navigate to="/" />;
 }
 
 // 이미 로그인 되어 있으면 홈으로

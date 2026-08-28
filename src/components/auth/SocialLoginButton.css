@@ -1,0 +1,61 @@
+.social-login-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--letter-spacing-tight);
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.social-login-button:active {
+  transform: scale(0.98);
+}
+
+.social-login-button--kakao {
+  background: #fee500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.social-login-button--kakao:hover {
+  opacity: 0.92;
+}
+
+.social-login-button--naver {
+  background: #03c75a;
+  color: var(--color-gray-0);
+}
+
+.social-login-button--naver:hover {
+  opacity: 0.92;
+}
+
+.social-login-button--google {
+  background: #f2f2f2;
+  color: var(--color-text-primary);
+}
+
+.social-login-button--google:hover {
+  opacity: 0.92;
+}
+
+.social-login-button__icon {
+  position: absolute;
+  left: var(--space-4);
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.social-login-button__label {
+  letter-spacing: var(--letter-spacing-tight);
+}
