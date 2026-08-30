@@ -5,6 +5,7 @@ import KakaoCallback from '../pages/KakaoCallback';
 import HomePage from '../pages/HomePage';
 import Layout from '../components/common/Layout';
 import CreateRoom from '../pages/CreateRoom';
+import SignupPage from '../pages/SignupPage';
 
 // 로그인 여부 확인
 const isLoggedIn = () => !!localStorage.getItem('token');
@@ -27,6 +28,7 @@ export default function Router() {
         <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/auth/naver/callback" element={<NaverCallback />} />
         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/home" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
         <Route path="/schedule" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>일정</div></Layout></PrivateRoute>} />
         <Route path="/verify" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>인증하기</div></Layout></PrivateRoute>} />
