@@ -1,10 +1,27 @@
-.bottom-nav {
-  display: flex;
+.bottom-nav-shell {
   position: fixed;
   right: 0;
-  bottom: calc(var(--bottom-nav-bottom-offset) + var(--safe-area-bottom));
+  bottom: 0;
   left: 0;
   z-index: 20;
+  display: flex;
+  flex-direction: column;
+  height: calc(
+    var(--bottom-nav-bottom-offset) + var(--bottom-nav-height) + var(--safe-area-bottom)
+  );
+  padding-bottom: var(--safe-area-bottom);
+  background: var(--color-gray-0);
+}
+
+.bottom-nav-shell__fill {
+  flex: 1;
+  min-height: var(--bottom-nav-bottom-offset);
+  background: var(--color-gray-0);
+}
+
+.bottom-nav {
+  display: flex;
+  flex-shrink: 0;
   width: 100%;
   height: var(--bottom-nav-height);
   margin: 0;
