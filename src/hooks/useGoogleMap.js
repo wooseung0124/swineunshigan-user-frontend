@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_MAP_CENTER, loadGoogleMaps, SEONGSU_STATION, toPanelPlace } from '../utils/googleMaps';
+import { attachMarkerClusterer, createPlaceMarkerIcon } from '../utils/mapMarkers';
 
 /**
  * @param {React.RefObject<HTMLElement|null>} mapRef
@@ -8,6 +9,7 @@ import { DEFAULT_MAP_CENTER, loadGoogleMaps, SEONGSU_STATION, toPanelPlace } fro
 export function useGoogleMap(mapRef, onPlaceSelect) {
   const mapInstanceRef = useRef(null);
   const placesServiceRef = useRef(null);
+  const clustererRef = useRef(null);
   const markersRef = useRef([]);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState('');
@@ -59,32 +61,44 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
         window.removeEventListener('resize', relayoutMap);
       }
       resizeObserver?.disconnect();
+      clustererRef.current?.clearMarkers();
+      clustererRef.current = null;
     };
   }, [mapRef]);
 
   const clearMarkers = () => {
-    markersRef.current.forEach((marker) => marker.setMap(null));
+    clustererRef.current?.clearMarkers();
+    clustererRef.current = null;
     markersRef.current = [];
   };
 
-  const addMarker = (place) => {
+  const renderMarkers = (places) => {
     const map = mapInstanceRef.current;
     const maps = window.google?.maps;
-    if (!map || !maps || !place.geometry?.location) {
+
+    if (!map || !maps) {
       return;
     }
 
-    const marker = new maps.Marker({
-      map,
-      position: place.geometry.location,
-      title: place.name,
-    });
+    clearMarkers();
 
-    marker.addListener('click', () => {
-      onPlaceSelect(toPanelPlace(place));
-    });
+    markersRef.current = places
+      .filter((place) => place.geometry?.location)
+      .map((place) => {
+        const marker = new maps.Marker({
+          position: place.geometry.location,
+          title: place.name,
+          icon: createPlaceMarkerIcon(maps),
+        });
 
-    markersRef.current.push(marker);
+        marker.addListener('click', () => {
+          onPlaceSelect(toPanelPlace(place));
+        });
+
+        return marker;
+      });
+
+    clustererRef.current = attachMarkerClusterer(map, markersRef.current, maps);
   };
 
   const searchPlaces = (keyword) => {
@@ -107,11 +121,10 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
           return;
         }
 
-        clearMarkers();
+        renderMarkers(results);
 
         const bounds = new maps.LatLngBounds();
         results.forEach((place) => {
-          addMarker(place);
           if (place.geometry?.location) {
             bounds.extend(place.geometry.location);
           }
