@@ -1,30 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import SlideUpPanel from '../components/common/SlideUpPanel';
 import { IconSearch } from '../components/common/NavIcons';
+import { useGoogleMap } from '../hooks/useGoogleMap';
 import searchBrandIcon from '../assets/search-brand-icon.png';
 import './HomePage.css';
 
 const CATEGORY_OPTIONS = ['카페', '음식점', '문화시설', '레포츠'];
 const SEARCH_TIP_KEY = 'home_search_tip_dismissed';
 
-const loadKakaoMap = () => {
-  return new Promise((resolve) => {
-    if (window.kakao?.maps) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_KEY}&libraries=services&autoload=false`;
-    script.onload = () => window.kakao.maps.load(resolve);
-    document.head.appendChild(script);
-  });
-};
-
 export default function HomePage() {
   const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markersRef = useRef([]);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedPlace, setSelectedPlace] = useState(null);
@@ -32,71 +17,10 @@ export default function HomePage() {
     () => sessionStorage.getItem(SEARCH_TIP_KEY) !== 'true',
   );
 
-  useEffect(() => {
-    let resizeObserver;
-    let relayoutMap;
-
-    loadKakaoMap().then(() => {
-      if (!mapRef.current || mapInstanceRef.current) return;
-
-      const mapInstance = new window.kakao.maps.Map(mapRef.current, {
-        center: new window.kakao.maps.LatLng(37.5447, 127.0557),
-        level: 4,
-      });
-
-      mapInstanceRef.current = mapInstance;
-
-      relayoutMap = () => {
-        mapInstance.relayout();
-      };
-
-      window.addEventListener('resize', relayoutMap);
-      resizeObserver = new ResizeObserver(relayoutMap);
-      resizeObserver.observe(mapRef.current);
-    });
-
-    return () => {
-      if (relayoutMap) {
-        window.removeEventListener('resize', relayoutMap);
-      }
-      resizeObserver?.disconnect();
-    };
-  }, []);
-
-  const clearMarkers = () => {
-    markersRef.current.forEach((marker) => marker.setMap(null));
-    markersRef.current = [];
-  };
-
-  const searchPlaces = (keyword) => {
-    const map = mapInstanceRef.current;
-    if (!map || !keyword.trim()) return;
-
-    const ps = new window.kakao.maps.services.Places();
-    ps.keywordSearch(keyword.trim(), (data, status) => {
-      if (status !== window.kakao.maps.services.Status.OK) return;
-
-      clearMarkers();
-
-      const bounds = new window.kakao.maps.LatLngBounds();
-      data.forEach((place) => {
-        const marker = new window.kakao.maps.Marker({
-          map,
-          position: new window.kakao.maps.LatLng(place.y, place.x),
-          title: place.place_name,
-        });
-
-        window.kakao.maps.event.addListener(marker, 'click', () => {
-          setSelectedPlace(place);
-        });
-
-        markersRef.current.push(marker);
-        bounds.extend(new window.kakao.maps.LatLng(place.y, place.x));
-      });
-
-      map.setBounds(bounds);
-    });
-  };
+  const { mapError, searchPlaces, zoomIn, goToCurrentLocation } = useGoogleMap(
+    mapRef,
+    setSelectedPlace,
+  );
 
   const handleSearch = () => {
     searchPlaces(searchKeyword);
@@ -117,47 +41,18 @@ export default function HomePage() {
     sessionStorage.setItem(SEARCH_TIP_KEY, 'true');
   };
 
-  const handleZoomIn = () => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-    map.setLevel(map.getLevel() - 1);
-  };
-
-  const handleCurrentLocation = () => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    if (!navigator.geolocation) {
-      alert('위치 정보를 가져올 수 없습니다.');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const locPosition = new window.kakao.maps.LatLng(
-          pos.coords.latitude,
-          pos.coords.longitude,
-        );
-
-        map.setCenter(locPosition);
-
-        const marker = new window.kakao.maps.Marker({
-          map,
-          position: locPosition,
-          title: '내 위치',
-        });
-
-        markersRef.current.push(marker);
-      },
-      () => {
-        alert('위치 정보를 가져올 수 없습니다.');
-      },
-    );
-  };
-
   return (
     <div className="home-page">
       <div ref={mapRef} className="home-page__map" aria-label="지도" />
+
+      {mapError && (
+        <div className="home-page__map-error" role="alert">
+          <p>{mapError}</p>
+          <p className="home-page__map-error-hint">
+            `.env`에 `VITE_GOOGLE_MAPS_API_KEY`를 설정한 뒤 dev 서버를 재시작해 주세요.
+          </p>
+        </div>
+      )}
 
       <div className="home-page__controls">
         <div className="home-page__search-row">
@@ -232,13 +127,13 @@ export default function HomePage() {
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--zoom"
-          onClick={handleZoomIn}
+          onClick={zoomIn}
           aria-label="지도 확대"
         />
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--locate"
-          onClick={handleCurrentLocation}
+          onClick={goToCurrentLocation}
           aria-label="현재 위치로 이동"
         />
       </div>
