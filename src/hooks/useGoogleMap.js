@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { DEFAULT_MAP_CENTER, loadGoogleMaps, toPanelPlace } from '../utils/googleMaps';
+import { DEFAULT_MAP_CENTER, loadGoogleMaps, SEONGSU_STATION, toPanelPlace } from '../utils/googleMaps';
 
 /**
  * @param {React.RefObject<HTMLElement|null>} mapRef
@@ -130,7 +130,7 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
     map.setZoom(map.getZoom() + 1);
   };
 
-  const goToCurrentLocation = () => {
+  const goToSeongsuStation = () => {
     const map = mapInstanceRef.current;
     const maps = window.google?.maps;
 
@@ -138,32 +138,8 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
       return;
     }
 
-    if (!navigator.geolocation) {
-      alert('위치 정보를 가져올 수 없습니다.');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const position = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-
-        map.setCenter(position);
-
-        const marker = new maps.Marker({
-          map,
-          position,
-          title: '내 위치',
-        });
-
-        markersRef.current.push(marker);
-      },
-      () => {
-        alert('위치 정보를 가져올 수 없습니다.');
-      },
-    );
+    map.setCenter(SEONGSU_STATION);
+    map.setZoom(16);
   };
 
   return {
@@ -171,6 +147,6 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
     mapError,
     searchPlaces,
     zoomIn,
-    goToCurrentLocation,
+    goToSeongsuStation,
   };
 }

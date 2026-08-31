@@ -17,7 +17,7 @@ export default function HomePage() {
     () => sessionStorage.getItem(SEARCH_TIP_KEY) !== 'true',
   );
 
-  const { mapError, searchPlaces, zoomIn, goToCurrentLocation } = useGoogleMap(
+  const { mapError, searchPlaces, zoomIn, goToSeongsuStation } = useGoogleMap(
     mapRef,
     setSelectedPlace,
   );
@@ -133,8 +133,8 @@ export default function HomePage() {
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--locate"
-          onClick={goToCurrentLocation}
-          aria-label="현재 위치로 이동"
+          onClick={goToSeongsuStation}
+          aria-label="성수역으로 이동"
         />
       </div>
 
