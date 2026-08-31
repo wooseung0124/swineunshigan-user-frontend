@@ -5,6 +5,7 @@ import KakaoCallback from '../pages/KakaoCallback';
 import HomePage from '../pages/HomePage';
 import Layout from '../components/common/Layout';
 import CreateRoom from '../pages/CreateRoom';
+import MyPage from '../pages/MyPage';
 import SignupPage from '../pages/SignupPage';
 
 // 로그인 여부 확인
@@ -34,7 +35,7 @@ export default function Router() {
         <Route path="/schedule" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>일정</div></Layout></PrivateRoute>} />
         <Route path="/verify" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>인증하기</div></Layout></PrivateRoute>} />
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
-        <Route path="/mypage" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>마이페이지</div></Layout></PrivateRoute>} />
+        <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   );
