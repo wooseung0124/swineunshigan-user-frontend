@@ -10,9 +10,8 @@
   display: grid;
   grid-template-columns: 40px 1fr 40px;
   align-items: center;
-  height: var(--header-height);
-  padding: 0 var(--space-4);
-  padding-top: var(--safe-area-top);
+  min-height: var(--header-height);
+  padding: calc(var(--mypage-header-top) + var(--safe-area-top)) var(--space-4) 0;
 }
 
 .mypage__header-btn {
