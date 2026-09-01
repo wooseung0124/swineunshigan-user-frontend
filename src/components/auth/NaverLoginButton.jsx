@@ -1,9 +1,12 @@
 import SocialLoginButton from './SocialLoginButton';
+import { resolveOAuthRedirectUri } from '../../utils/oauthRedirect';
 
 export default function NaverLoginButton() {
   const handleNaverLogin = () => {
     const clientId = import.meta.env.VITE_NAVER_CLIENT_ID;
-    const redirectUri = encodeURIComponent(import.meta.env.VITE_REDIRECT_URI);
+    const redirectUri = encodeURIComponent(
+      resolveOAuthRedirectUri('/auth/naver/callback', import.meta.env.VITE_REDIRECT_URI),
+    );
     const state = crypto.randomUUID();
 
     sessionStorage.setItem('naver_oauth_state', state);

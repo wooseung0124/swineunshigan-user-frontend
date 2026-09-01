@@ -41,7 +41,8 @@ export default function KakaoCallback() {
       }
 
       try {
-        const response = await fetch(apiUrl('/api/v1/auth/kakao/login'), {
+        const loginUrl = apiUrl('/api/v1/auth/kakao/login');
+        const response = await fetch(loginUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code, state }),
@@ -54,7 +55,9 @@ export default function KakaoCallback() {
           const message =
             data?.message ||
             auth?.message ||
-            (response.status === 403
+            (response.status === 404
+              ? `백엔드 API를 찾을 수 없습니다(404).\n요청 URL: ${loginUrl}\n배포 환경에 VITE_API_BASE_URL이 설정됐는지 확인해 주세요.`
+              : response.status === 403
               ? '백엔드에서 접근이 거부되었습니다(403).'
               : `서버 오류 (${response.status}). 백엔드 API가 실행 중인지 확인해 주세요.`);
           throw new Error(message);
