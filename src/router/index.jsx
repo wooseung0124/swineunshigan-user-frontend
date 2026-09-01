@@ -7,6 +7,7 @@ import Layout from '../components/common/Layout';
 import CreateRoom from '../pages/CreateRoom';
 import MyPage from '../pages/MyPage';
 import SignupPage from '../pages/SignupPage';
+import { getSignupDraft } from '../utils/authSession';
 
 // 로그인 여부 확인
 const isLoggedIn = () => !!localStorage.getItem('token');
@@ -22,6 +23,17 @@ function PublicRoute({ children }) {
   return isLoggedIn() ? <Navigate to="/home" /> : children;
 }
 
+// 회원가입 draft가 있을 때만 접근
+function SignupRoute({ children }) {
+  const draft = getSignupDraft();
+
+  if (draft?.signupToken) {
+    return children;
+  }
+
+  return isLoggedIn() ? <Navigate to="/home" replace /> : <Navigate to="/" replace />;
+}
+
 export default function Router() {
   return (
     <BrowserRouter>
@@ -30,7 +42,7 @@ export default function Router() {
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/auth/naver/callback" element={<NaverCallback />} />
         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/signup" element={<SignupRoute><SignupPage /></SignupRoute>} />
         <Route path="/home" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
         <Route path="/schedule" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>일정</div></Layout></PrivateRoute>} />
         <Route path="/verify" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>인증하기</div></Layout></PrivateRoute>} />

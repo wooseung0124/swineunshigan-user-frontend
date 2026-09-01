@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiUrl, getApiBaseUrl } from '../utils/api';
 import {
+  clearClientAuthState,
   isAuthSuccess,
+  parseAuthResponse,
   saveAuthSession,
   saveSignupDraft,
 } from '../utils/authSession';
@@ -46,24 +48,32 @@ export default function KakaoCallback() {
         });
 
         const data = await response.json().catch(() => null);
+        const auth = parseAuthResponse(data);
 
         if (!response.ok) {
           const message =
             data?.message ||
+            auth?.message ||
             (response.status === 403
               ? '백엔드에서 접근이 거부되었습니다(403).'
               : `서버 오류 (${response.status}). 백엔드 API가 실행 중인지 확인해 주세요.`);
           throw new Error(message);
         }
 
-        if (data.authStatus === 'ADDITIONAL_INFO_REQUIRED') {
-          saveSignupDraft(data);
+        if (!auth) {
+          throw new Error('로그인 응답 형식이 올바르지 않습니다.');
+        }
+
+        if (auth.authStatus === 'ADDITIONAL_INFO_REQUIRED') {
+          if (!saveSignupDraft(auth)) {
+            throw new Error('회원가입 토큰을 받지 못했습니다. 다시 로그인해 주세요.');
+          }
           navigate('/signup', { replace: true });
           return;
         }
 
-        if (isAuthSuccess(data)) {
-          saveAuthSession(data);
+        if (isAuthSuccess(auth)) {
+          saveAuthSession(auth);
           navigate('/home', { replace: true });
           return;
         }

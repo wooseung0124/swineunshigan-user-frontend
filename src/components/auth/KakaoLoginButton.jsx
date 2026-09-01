@@ -1,7 +1,10 @@
 import SocialLoginButton from './SocialLoginButton';
+import { clearClientAuthState } from '../../utils/authSession';
 
 export default function KakaoLoginButton() {
   const handleKakaoLogin = () => {
+    clearClientAuthState();
+
     const clientId = import.meta.env.VITE_KAKAO_CLIENT_ID;
     const redirectUri = encodeURIComponent(import.meta.env.VITE_KAKAO_REDIRECT_URI);
 
@@ -9,7 +12,8 @@ export default function KakaoLoginButton() {
       `https://kauth.kakao.com/oauth/authorize` +
       `?response_type=code` +
       `&client_id=${clientId}` +
-      `&redirect_uri=${redirectUri}`;
+      `&redirect_uri=${redirectUri}` +
+      `&prompt=login`;
 
     window.location.href = url;
   };
