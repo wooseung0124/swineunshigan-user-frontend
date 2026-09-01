@@ -135,14 +135,6 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
     );
   };
 
-  const zoomIn = () => {
-    const map = mapInstanceRef.current;
-    if (!map) {
-      return;
-    }
-    map.setZoom(map.getZoom() + 1);
-  };
-
   const goToSeongsuStation = () => {
     const map = mapInstanceRef.current;
     const maps = window.google?.maps;
@@ -159,7 +151,6 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
     mapReady,
     mapError,
     searchPlaces,
-    zoomIn,
     goToSeongsuStation,
   };
 }

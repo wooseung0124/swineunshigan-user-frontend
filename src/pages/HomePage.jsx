@@ -17,7 +17,7 @@ export default function HomePage() {
     () => sessionStorage.getItem(SEARCH_TIP_KEY) !== 'true',
   );
 
-  const { mapError, searchPlaces, zoomIn, goToSeongsuStation } = useGoogleMap(
+  const { mapError, searchPlaces, goToSeongsuStation } = useGoogleMap(
     mapRef,
     setSelectedPlace,
   );
@@ -127,7 +127,6 @@ export default function HomePage() {
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--zoom"
-          onClick={zoomIn}
           aria-label="지도 확대"
         />
         <button
