@@ -6,6 +6,7 @@ import HomePage from '../pages/HomePage';
 import Layout from '../components/common/Layout';
 import CreateRoom from '../pages/CreateRoom';
 import MyPage from '../pages/MyPage';
+import ProfilePage from '../pages/ProfilePage';
 import SignupPage from '../pages/SignupPage';
 import { getSignupDraft } from '../utils/authSession';
 
@@ -48,6 +49,7 @@ export default function Router() {
         <Route path="/verify" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>인증하기</div></Layout></PrivateRoute>} />
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
+        <Route path="/mypage/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   );

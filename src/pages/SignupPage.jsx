@@ -11,6 +11,7 @@ import {
 import {
   buildSignupInitialValues,
   buildSignupPayload,
+  birthDateToApi,
   collectSignupFieldKeys,
   formatBirthDateInput,
   formatMissingFieldMessage,
@@ -27,6 +28,7 @@ import SignupPersonalityResult from './SignupPersonalityResult';
 import SignupProfileIntro from './SignupProfileIntro';
 import { buildRecommendedBio } from '../utils/signupBio';
 import { readProfileImageAsDataUrl, validateProfileImageFile } from '../utils/profileImage';
+import { updateStoredUser } from '../utils/userProfile';
 import './SignupPage.css';
 
 const SIGNUP_PROGRESS_INDEX = {
@@ -248,15 +250,18 @@ export default function SignupPage() {
     setError('');
 
     try {
+      let profileImageUrl;
+
+      if (profileImageFile) {
+        profileImageUrl = await readProfileImageAsDataUrl(profileImageFile);
+      }
+
       const payload = {
         signupToken: currentDraft.signupToken,
         ...buildSignupPayload(formValues, formFields, currentDraft.socialUser),
         bio: formValues.bio?.trim() || undefined,
+        ...(profileImageUrl ? { profileImageUrl } : {}),
       };
-
-      if (profileImageFile) {
-        payload.profileImageUrl = await readProfileImageAsDataUrl(profileImageFile);
-      }
 
       const response = await fetch(apiUrl('/api/v1/auth/signup/complete'), {
         method: 'POST',
@@ -281,6 +286,17 @@ export default function SignupPage() {
       if (isAuthSuccess(data)) {
         clearSignupDraft();
         saveAuthSession(data);
+
+        updateStoredUser({
+          name: formValues.name,
+          gender: formValues.gender,
+          birthDate: birthDateToApi(formValues.birthDate) || formValues.birthDate,
+          email: formValues.email,
+          bio: formValues.bio?.trim() || '',
+          personalityHeadline: personalityResult?.headline || '',
+          ...(profileImageUrl ? { profileImageUrl } : {}),
+        });
+
         navigate('/home', { replace: true });
         return;
       }

@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backIcon from '../assets/icons/mypage-back.png';
 import notifyIcon from '../assets/icons/mypage-notify.png';
-import profileDefaultIcon from '../assets/icons/mypage-profile-default.png';
+import profileDefaultIcon from '../assets/icons/signup-profile-default.png';
+import { getUserProfile } from '../utils/userProfile';
 import './MyPage.css';
 
 const MENU_ITEMS = [
@@ -33,22 +33,12 @@ function ChevronIcon() {
   );
 }
 
-function getDisplayName() {
-  if (sessionStorage.getItem('guest') === 'true') {
-    return '게스트';
-  }
-
-  try {
-    const user = JSON.parse(localStorage.getItem('user') ?? 'null');
-    return user?.name || user?.nickname || '이주영';
-  } catch {
-    return '이주영';
-  }
-}
-
 export default function MyPage() {
   const navigate = useNavigate();
-  const displayName = useMemo(() => getDisplayName(), []);
+  const isGuest = sessionStorage.getItem('guest') === 'true';
+  const profile = getUserProfile();
+  const displayName = isGuest ? '게스트' : profile.name;
+  const avatarSrc = profile.profileImageUrl || profileDefaultIcon;
 
   const handleMenuClick = (itemId) => {
     alert(`${MENU_ITEMS.find((item) => item.id === itemId)?.label} 페이지 연결 예정`);
@@ -89,9 +79,9 @@ export default function MyPage() {
       <button
         type="button"
         className="mypage__profile"
-        onClick={() => alert('프로필 상세 페이지 연결 예정')}
+        onClick={() => navigate('/mypage/profile')}
       >
-        <img className="mypage__avatar" src={profileDefaultIcon} alt="" />
+        <img className="mypage__avatar" src={avatarSrc} alt="" />
         <span className="mypage__name">{displayName}</span>
         <ChevronIcon />
       </button>

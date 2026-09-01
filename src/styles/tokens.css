@@ -87,6 +87,9 @@
   --header-height: 52px;
   --bottom-nav-height: 64px;
   --bottom-nav-bottom-offset: 60px;
+  --bottom-nav-shell-height: calc(
+    var(--bottom-nav-bottom-offset) + var(--bottom-nav-height) + var(--safe-area-bottom)
+  );
   --home-controls-top: 64px;
   --mypage-header-top: 60px;
   --home-search-categories-gap: 16px;

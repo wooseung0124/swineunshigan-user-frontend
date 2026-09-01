@@ -465,10 +465,12 @@
 }
 
 .signup-profile__header {
-  margin-bottom: var(--space-6);
+  flex-shrink: 0;
+  margin-bottom: var(--space-8);
 }
 
 .signup-profile__identity {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -477,12 +479,14 @@
 
 .signup-profile__avatar-wrap {
   position: relative;
+  flex-shrink: 0;
   width: 96px;
   height: 96px;
   margin-bottom: var(--space-4);
 }
 
 .signup-profile__avatar {
+  display: block;
   width: 100%;
   height: 100%;
   border-radius: var(--radius-full);
