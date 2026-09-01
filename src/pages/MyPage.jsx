@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Modal } from '../components/ui';
 import backIcon from '../assets/icons/mypage-back.png';
 import notifyIcon from '../assets/icons/mypage-notify.png';
 import profileDefaultIcon from '../assets/icons/signup-profile-default.png';
+import { clearClientAuthState } from '../utils/authSession';
 import { getUserProfile } from '../utils/userProfile';
 import './MyPage.css';
 
@@ -35,6 +38,7 @@ function ChevronIcon() {
 
 export default function MyPage() {
   const navigate = useNavigate();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const isGuest = sessionStorage.getItem('guest') === 'true';
   const profile = getUserProfile();
   const displayName = isGuest ? '게스트' : profile.name;
@@ -44,11 +48,13 @@ export default function MyPage() {
     alert(`${MENU_ITEMS.find((item) => item.id === itemId)?.label} 페이지 연결 예정`);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('guest');
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    clearClientAuthState();
+    setIsLogoutModalOpen(false);
     navigate('/', { replace: true });
   };
 
@@ -103,12 +109,26 @@ export default function MyPage() {
 
         <div className="mypage__divider mypage__divider--thin" aria-hidden="true" />
 
-        <button type="button" className="mypage__menu-item mypage__menu-item--logout" onClick={handleLogout}>
+        <button
+          type="button"
+          className="mypage__menu-item mypage__menu-item--logout"
+          onClick={handleLogoutClick}
+        >
           <span className="mypage__menu-label">로그아웃</span>
         </button>
       </nav>
 
       <div className="mypage__spacer" aria-hidden="true" />
+
+      <Modal
+        isOpen={isLogoutModalOpen}
+        title="로그아웃 하시겠습니까?"
+        cancelLabel="아니오"
+        confirmLabel="로그아웃 하기"
+        actionsLayout="row"
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
     </div>
   );
 }

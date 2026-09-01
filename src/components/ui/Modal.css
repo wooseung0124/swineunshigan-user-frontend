@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-5);
-  background: rgba(36, 36, 35, 0.45);
+  background: rgba(0, 0, 0, 0.61);
 }
 
 .ui-modal__panel {
@@ -19,12 +19,13 @@
 }
 
 .ui-modal__title {
-  margin: 0 0 var(--space-3);
-  font-size: var(--text-t2-size);
-  font-weight: var(--text-t2-weight);
-  line-height: var(--text-t2-line-height);
-  letter-spacing: var(--letter-spacing-tight);
+  margin: 0 0 var(--space-6);
   color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--text-t2-size);
+  font-weight: 600;
+  line-height: var(--text-t2-line-height);
+  letter-spacing: -0.02em;
   text-align: center;
 }
 
