@@ -171,7 +171,7 @@ export function buildSignupPayload(formValues, formFields, socialUser) {
     payload.nickname = String(socialUser.nickname);
   }
 
-  formFields.forEach((field) => {
+  collectSignupFieldKeys(formFields).forEach((field) => {
     const value = formValues[field];
     const meta = getSignupFieldMeta(field);
 

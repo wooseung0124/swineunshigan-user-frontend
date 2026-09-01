@@ -7,6 +7,7 @@ import backIcon from '../assets/icons/mypage-back.png';
 import { readProfileImageAsDataUrl, validateProfileImageFile } from '../utils/profileImage';
 import {
   getUserProfile,
+  syncUserFromServer,
   updateStoredUser,
 } from '../utils/userProfile';
 import './ProfilePage.css';
@@ -35,9 +36,22 @@ export default function ProfilePage() {
   const [isPhotoSheetOpen, setIsPhotoSheetOpen] = useState(false);
 
   useEffect(() => {
-    setProfile(getUserProfile());
-  }, [location.key]);
+    let isMounted = true;
 
+    const loadProfile = async () => {
+      await syncUserFromServer();
+
+      if (isMounted) {
+        setProfile(getUserProfile());
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.key]);
   const avatarSrc = profile.profileImageUrl || profileDefaultIcon;
 
   const syncProfile = () => {

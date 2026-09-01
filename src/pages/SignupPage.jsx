@@ -5,7 +5,7 @@ import { apiUrl } from '../utils/api';
 import {
   clearSignupDraft,
   getSignupDraft,
-  isAuthSuccess,
+  canCompleteAuth,
   saveAuthSession,
 } from '../utils/authSession';
 import {
@@ -28,7 +28,13 @@ import SignupPersonalityResult from './SignupPersonalityResult';
 import SignupProfileIntro from './SignupProfileIntro';
 import { buildRecommendedBio } from '../utils/signupBio';
 import { readProfileImageAsDataUrl, validateProfileImageFile } from '../utils/profileImage';
-import { updateStoredUser } from '../utils/userProfile';
+import { persistProfileExtension } from '../utils/userProfile';
+import {
+  getSignupProfileDraft,
+  saveSignupProfileDraft,
+  saveSignupProfileDraftFromForm,
+  clearSignupProfileDraft,
+} from '../utils/signupProfileDraft';
 import './SignupPage.css';
 
 const SIGNUP_PROGRESS_INDEX = {
@@ -156,10 +162,18 @@ export default function SignupPage() {
     () => resolveSignupSteps(formFields, draft?.socialUser),
     [formFields, draft?.socialUser],
   );
-  const [formValues, setFormValues] = useState(() => ({
-    ...buildSignupInitialValues(formFields, draft?.socialUser),
-    bio: '',
-  }));
+  const [formValues, setFormValues] = useState(() => {
+    const profileDraft = getSignupProfileDraft();
+
+    return {
+      ...buildSignupInitialValues(formFields, draft?.socialUser),
+      bio: typeof profileDraft.bio === 'string' ? profileDraft.bio : '',
+      ...(profileDraft.name ? { name: String(profileDraft.name) } : {}),
+      ...(profileDraft.email ? { email: String(profileDraft.email) } : {}),
+      ...(profileDraft.gender ? { gender: String(profileDraft.gender) } : {}),
+      ...(profileDraft.birthDate ? { birthDate: String(profileDraft.birthDate) } : {}),
+    };
+  });
   const [currentStep, setCurrentStep] = useState(0);
   const [personalityResult, setPersonalityResult] = useState(null);
   const [introMode, setIntroMode] = useState('direct');
@@ -222,7 +236,11 @@ export default function SignupPage() {
       ? formatBirthDateInput(nextValue)
       : nextValue;
 
-    setFormValues((prev) => ({ ...prev, [field]: formattedValue }));
+    setFormValues((prev) => {
+      const next = { ...prev, [field]: formattedValue };
+      saveSignupProfileDraftFromForm(next);
+      return next;
+    });
     setError('');
   };
 
@@ -248,6 +266,7 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     setError('');
+    saveSignupProfileDraftFromForm(formValues);
 
     try {
       let profileImageUrl;
@@ -259,6 +278,10 @@ export default function SignupPage() {
       const payload = {
         signupToken: currentDraft.signupToken,
         ...buildSignupPayload(formValues, formFields, currentDraft.socialUser),
+        name: formValues.name?.trim(),
+        gender: formValues.gender,
+        birthDate: birthDateToApi(formValues.birthDate) || formValues.birthDate,
+        email: formValues.email?.trim(),
         bio: formValues.bio?.trim() || undefined,
         ...(profileImageUrl ? { profileImageUrl } : {}),
       };
@@ -274,29 +297,39 @@ export default function SignupPage() {
       if (!response.ok) {
         if (response.status === 401) {
           clearSignupDraft();
+          clearSignupProfileDraft();
           throw new Error(
             data?.message ||
               '회원가입 세션이 만료되었습니다. 카카오 로그인을 다시 진행해 주세요.',
           );
         }
 
+        if (response.status === 409) {
+          clearSignupDraft();
+          clearSignupProfileDraft();
+          setError('이미 가입된 계정입니다. 로그인 화면으로 이동합니다.');
+          window.setTimeout(() => navigate('/', { replace: true }), 1500);
+          return;
+        }
+
         throw new Error(data?.message || `회원가입에 실패했습니다. (${response.status})`);
       }
 
-      if (isAuthSuccess(data)) {
+      if (canCompleteAuth(data)) {
         clearSignupDraft();
-        saveAuthSession(data);
-
-        updateStoredUser({
-          name: formValues.name,
+        const profilePatch = {
+          name: formValues.name?.trim(),
           gender: formValues.gender,
           birthDate: birthDateToApi(formValues.birthDate) || formValues.birthDate,
-          email: formValues.email,
+          email: formValues.email?.trim(),
           bio: formValues.bio?.trim() || '',
           personalityHeadline: personalityResult?.headline || '',
           personalityResult: personalityResult || null,
           ...(profileImageUrl ? { profileImageUrl } : {}),
-        });
+        };
+
+        saveSignupProfileDraft(profilePatch);
+        saveAuthSession(data, profilePatch);
 
         navigate('/home', { replace: true });
         return;
@@ -327,8 +360,13 @@ export default function SignupPage() {
     }
 
     if (isPersonalityIntro) {
+      const result = pickRandomPersonalityResult();
+      setPersonalityResult(result);
+      saveSignupProfileDraft({
+        personalityResult: result,
+        personalityHeadline: result.headline,
+      });
       const resultStepIndex = steps.findIndex((step) => step.id === 'personality-result');
-      setPersonalityResult(pickRandomPersonalityResult());
       setCurrentStep(resultStepIndex >= 0 ? resultStepIndex : currentStep + 1);
       setError('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -372,7 +410,11 @@ export default function SignupPage() {
   };
 
   const handleBioChange = (nextBio) => {
-    setFormValues((prev) => ({ ...prev, bio: nextBio }));
+    setFormValues((prev) => {
+      const next = { ...prev, bio: nextBio };
+      saveSignupProfileDraftFromForm(next);
+      return next;
+    });
 
     if (introMode === 'direct') {
       setDirectBioDraft(nextBio);
@@ -381,7 +423,7 @@ export default function SignupPage() {
     setError('');
   };
 
-  const handleProfileImageSelect = (file) => {
+  const handleProfileImageSelect = async (file) => {
     const validationError = validateProfileImageFile(file);
 
     if (validationError) {
@@ -397,6 +439,16 @@ export default function SignupPage() {
       return URL.createObjectURL(file);
     });
     setProfileImageFile(file);
+
+    try {
+      const profileImageUrl = await readProfileImageAsDataUrl(file);
+      saveSignupProfileDraft({ profileImageUrl });
+      persistProfileExtension({ profileImageUrl });
+    } catch {
+      setError('프로필 사진을 불러오지 못했습니다.');
+      return;
+    }
+
     setError('');
   };
 

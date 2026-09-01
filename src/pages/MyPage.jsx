@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from '../components/ui';
 import backIcon from '../assets/icons/mypage-back.png';
 import notifyIcon from '../assets/icons/mypage-notify.png';
 import profileDefaultIcon from '../assets/icons/signup-profile-default.png';
 import { clearClientAuthState } from '../utils/authSession';
-import { getUserProfile } from '../utils/userProfile';
+import { getUserProfile, syncUserFromServer } from '../utils/userProfile';
 import './MyPage.css';
 
 const MENU_ITEMS = [
@@ -39,10 +39,30 @@ function ChevronIcon() {
 export default function MyPage() {
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [profile, setProfile] = useState(() => getUserProfile());
   const isGuest = sessionStorage.getItem('guest') === 'true';
-  const profile = getUserProfile();
   const displayName = isGuest ? '게스트' : profile.name;
   const avatarSrc = profile.profileImageUrl || profileDefaultIcon;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      await syncUserFromServer();
+
+      if (isMounted) {
+        setProfile(getUserProfile());
+      }
+    };
+
+    if (!isGuest) {
+      loadProfile();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isGuest]);
 
   const handleMenuClick = (itemId) => {
     alert(`${MENU_ITEMS.find((item) => item.id === itemId)?.label} 페이지 연결 예정`);

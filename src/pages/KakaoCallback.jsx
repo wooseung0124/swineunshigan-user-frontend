@@ -2,12 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiUrl, getApiBaseUrl } from '../utils/api';
 import {
-  clearClientAuthState,
-  isAuthSuccess,
   parseAuthResponse,
+  resolveAuthFlow,
   saveAuthSession,
   saveSignupDraft,
 } from '../utils/authSession';
+import { syncUserFromServer } from '../utils/userProfile';
 
 export default function KakaoCallback() {
   const [searchParams] = useSearchParams();
@@ -64,17 +64,20 @@ export default function KakaoCallback() {
           throw new Error('로그인 응답 형식이 올바르지 않습니다.');
         }
 
-        if (auth.authStatus === 'ADDITIONAL_INFO_REQUIRED') {
-          if (!saveSignupDraft(auth)) {
-            throw new Error('회원가입 토큰을 받지 못했습니다. 다시 로그인해 주세요.');
-          }
-          navigate('/signup', { replace: true });
+        const flow = resolveAuthFlow(data);
+
+        if (flow === 'login') {
+          saveAuthSession(data);
+          await syncUserFromServer();
+          navigate('/home', { replace: true });
           return;
         }
 
-        if (isAuthSuccess(auth)) {
-          saveAuthSession(auth);
-          navigate('/home', { replace: true });
+        if (flow === 'signup') {
+          if (!saveSignupDraft(data)) {
+            throw new Error('회원가입 토큰을 받지 못했습니다. 다시 로그인해 주세요.');
+          }
+          navigate('/signup', { replace: true });
           return;
         }
 

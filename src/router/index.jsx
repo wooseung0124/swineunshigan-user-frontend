@@ -7,9 +7,6 @@ import Layout from '../components/common/Layout';
 import CreateRoom from '../pages/CreateRoom';
 import MyPage from '../pages/MyPage';
 import ProfilePage from '../pages/ProfilePage';
-import EditNamePage from '../pages/EditNamePage';
-import EditGenderPage from '../pages/EditGenderPage';
-import PersonalityResultPage from '../pages/PersonalityResultPage';
 import SignupPage from '../pages/SignupPage';
 import { getSignupDraft } from '../utils/authSession';
 
@@ -53,9 +50,6 @@ export default function Router() {
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
         <Route path="/mypage/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
-        <Route path="/mypage/profile/edit-name" element={<PrivateRoute><Layout><EditNamePage /></Layout></PrivateRoute>} />
-        <Route path="/mypage/profile/edit-gender" element={<PrivateRoute><Layout><EditGenderPage /></Layout></PrivateRoute>} />
-        <Route path="/mypage/profile/personality" element={<PrivateRoute><Layout><PersonalityResultPage /></Layout></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   );
