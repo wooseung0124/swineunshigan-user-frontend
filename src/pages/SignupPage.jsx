@@ -294,6 +294,7 @@ export default function SignupPage() {
           email: formValues.email,
           bio: formValues.bio?.trim() || '',
           personalityHeadline: personalityResult?.headline || '',
+          personalityResult: personalityResult || null,
           ...(profileImageUrl ? { profileImageUrl } : {}),
         });
 

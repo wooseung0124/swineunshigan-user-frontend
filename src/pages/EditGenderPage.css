@@ -1,0 +1,133 @@
+.edit-gender-page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: calc(var(--bottom-nav-shell-height) + var(--space-4));
+  background: var(--color-gray-0);
+}
+
+.edit-gender-page__header {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  min-height: var(--header-height);
+  padding: calc(var(--mypage-header-top) + var(--safe-area-top)) var(--space-4)
+    var(--space-4);
+}
+
+.edit-gender-page__header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.edit-gender-page__header-btn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.edit-gender-page__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--text-t2-size);
+  font-weight: var(--text-t2-weight);
+  line-height: var(--text-t2-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+  text-align: center;
+}
+
+.edit-gender-page__submit {
+  justify-self: end;
+  min-width: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-400);
+  font-family: var(--font-family);
+  font-size: var(--text-b3-size);
+  font-weight: var(--text-b5-weight);
+  line-height: var(--text-b3-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+  cursor: not-allowed;
+}
+
+.edit-gender-page__submit:not(:disabled) {
+  color: var(--color-primary-600);
+  cursor: pointer;
+}
+
+.edit-gender-page__field {
+  padding: 0 var(--space-5);
+}
+
+.edit-gender-page__label {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-primary);
+  font-size: var(--text-b3-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-b3-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.edit-gender-page__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.edit-gender-page__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--text-b3-size);
+  font-weight: var(--text-b3-weight);
+  line-height: var(--text-b3-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+  text-align: left;
+  cursor: pointer;
+}
+
+.edit-gender-page__radio {
+  position: relative;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--color-gray-300);
+  border-radius: var(--radius-full);
+  background: var(--color-gray-0);
+}
+
+.edit-gender-page__option--selected .edit-gender-page__radio {
+  border-color: var(--color-primary-600);
+}
+
+.edit-gender-page__option--selected .edit-gender-page__radio::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-600);
+  transform: translate(-50%, -50%);
+}
+
+.edit-gender-page__option-label {
+  flex: 1;
+}

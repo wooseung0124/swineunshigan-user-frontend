@@ -1,0 +1,91 @@
+.personality-result-page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--color-gray-100);
+}
+
+.personality-result-page__header {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  min-height: var(--header-height);
+  padding: calc(var(--mypage-header-top) + var(--safe-area-top)) var(--space-4)
+    var(--space-4);
+  background: var(--color-gray-100);
+}
+
+.personality-result-page__header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-600);
+  cursor: pointer;
+}
+
+.personality-result-page__header-btn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.personality-result-page__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--text-t2-size);
+  font-weight: var(--text-t2-weight);
+  line-height: var(--text-t2-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+  text-align: center;
+}
+
+.personality-result-page__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--space-5)
+    calc(var(--bottom-nav-shell-height) + var(--space-6));
+}
+
+.personality-result-page__subtitle {
+  margin: 0 0 var(--space-5);
+  color: var(--color-gray-900);
+  font-family: var(--font-family);
+  font-size: var(--text-b2-size);
+  font-weight: 500;
+  line-height: var(--text-b2-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.personality-result-page__empty {
+  padding: var(--space-6) var(--space-5);
+  color: var(--color-gray-600);
+  font-size: var(--text-b2-size);
+  line-height: var(--text-b2-line-height);
+}
+
+.personality-result-page__retake {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  margin-top: var(--space-6);
+  padding: 0 var(--space-5);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-400);
+  color: var(--color-gray-900);
+  font-family: var(--font-family);
+  font-size: var(--text-b1-size);
+  font-weight: var(--text-b1-weight);
+  line-height: var(--text-b1-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+  cursor: pointer;
+}

@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import ProfilePhotoSheet from '../components/profile/ProfilePhotoSheet';
 import profileDefaultIcon from '../assets/icons/signup-profile-default.png';
 import profileCameraIcon from '../assets/icons/signup-profile-camera.png';
 import backIcon from '../assets/icons/mypage-back.png';
@@ -28,8 +29,14 @@ function BasicInfoRow({ label, value, onChange }) {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const initialProfile = useMemo(() => getUserProfile(), []);
   const [profile, setProfile] = useState(initialProfile);
+  const [isPhotoSheetOpen, setIsPhotoSheetOpen] = useState(false);
+
+  useEffect(() => {
+    setProfile(getUserProfile());
+  }, [location.key]);
 
   const avatarSrc = profile.profileImageUrl || profileDefaultIcon;
 
@@ -54,14 +61,9 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      handleProfileImageSelect(file);
-    }
-
-    event.target.value = '';
+  const handleResetProfileImage = () => {
+    updateStoredUser({ profileImageUrl: '' });
+    syncProfile();
   };
 
   const handleBioChange = (event) => {
@@ -75,28 +77,11 @@ export default function ProfilePage() {
   };
 
   const handleNameChange = () => {
-    const nextName = window.prompt('이름을 입력해 주세요.', profile.name);
-
-    if (!nextName?.trim()) {
-      return;
-    }
-
-    updateStoredUser({ name: nextName.trim() });
-    syncProfile();
+    navigate('/mypage/profile/edit-name');
   };
 
   const handleGenderChange = () => {
-    const nextGender = window.prompt('성별을 입력해 주세요. (남성 또는 여성)', profile.gender);
-
-    if (nextGender === '남성') {
-      updateStoredUser({ gender: 'MALE' });
-    } else if (nextGender === '여성') {
-      updateStoredUser({ gender: 'FEMALE' });
-    } else {
-      return;
-    }
-
-    syncProfile();
+    navigate('/mypage/profile/edit-gender');
   };
 
   return (
@@ -117,21 +102,24 @@ export default function ProfilePage() {
       <section className="profile-page__hero">
         <div className="profile-page__avatar-wrap">
           <img className="profile-page__avatar" src={avatarSrc} alt="" />
-          <label className="profile-page__camera" aria-label="프로필 사진 변경">
+          <label
+            className="profile-page__camera"
+            aria-label="프로필 사진 변경"
+            onClick={() => setIsPhotoSheetOpen(true)}
+          >
             <img className="profile-page__camera-icon" src={profileCameraIcon} alt="" />
-            <input
-              className="profile-page__file-input"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={handleFileChange}
-            />
           </label>
         </div>
-
         <p className="profile-page__name">{profile.name}</p>
 
         {profile.personalityHeadline && (
-          <p className="profile-page__personality-badge">{profile.personalityHeadline}</p>
+          <button
+            type="button"
+            className="profile-page__personality-badge"
+            onClick={() => navigate('/mypage/profile/personality')}
+          >
+            {profile.personalityHeadline}
+          </button>
         )}
       </section>
 
@@ -155,6 +143,15 @@ export default function ProfilePage() {
           <BasicInfoRow label="이메일" value={profile.email} />
         </div>
       </section>
+
+      <ProfilePhotoSheet
+        isOpen={isPhotoSheetOpen}
+        onClose={() => setIsPhotoSheetOpen(false)}
+        hasCustomPhoto={Boolean(profile.profileImageUrl)}
+        onSelectFile={handleProfileImageSelect}
+        onResetDefault={handleResetProfileImage}
+        onDeletePhoto={handleResetProfileImage}
+      />
     </div>
   );
 }

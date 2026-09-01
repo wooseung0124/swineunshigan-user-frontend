@@ -114,14 +114,17 @@
 .profile-page__personality-badge {
   margin: 0;
   padding: 8px 14px;
+  border: none;
   border-radius: var(--radius-full);
   background: var(--color-primary-50);
   color: var(--color-primary-700);
+  font-family: var(--font-family);
   font-size: var(--text-b4-size);
   font-weight: var(--text-b5-weight);
   line-height: 1.35;
   letter-spacing: var(--letter-spacing-tight);
   text-align: center;
+  cursor: pointer;
 }
 
 .profile-page__section {
