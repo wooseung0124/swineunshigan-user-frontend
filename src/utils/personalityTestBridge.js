@@ -176,13 +176,23 @@ export function getPersonalityQuizUrl() {
   return `${origin}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
-/** 랜딩 퀴즈로 바로 이동합니다. */
+/**
+ * 랜딩 퀴즈로 이동합니다.
+ * - 랜딩 게이트: ?from=web | ?from=instagram
+ * - 복귀 주소: ?app_base=현재 origin (랜딩이 지원하면 localhost로 복귀 가능)
+ * - 로컬(DEV): 새 탭에서 퀴즈를 열고, 결과 URL을 이어받는 대기 화면으로 이동합니다.
+ */
 export function openPersonalityQuiz({ fromInstagram = false } = {}) {
   const url = new URL(getPersonalityQuizUrl());
-  url.searchParams.set('origin', 'app');
-  if (fromInstagram) {
-    url.searchParams.set('from', 'instagram');
+  url.searchParams.set('from', fromInstagram ? 'instagram' : 'web');
+  url.searchParams.set('app_base', window.location.origin);
+
+  if (import.meta.env.DEV) {
+    sessionStorage.setItem('personalityQuizLaunchUrl', url.toString());
+    window.location.assign('/personality-waiting');
+    return;
   }
+
   window.location.assign(url.toString());
 }
 

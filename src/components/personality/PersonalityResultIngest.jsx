@@ -6,13 +6,16 @@ import {
   parsePersonalityParams,
   savePendingPersonalityResult,
 } from '../../utils/personalityTestBridge';
+import { saveSignupProfileDraft } from '../../utils/signupProfileDraft';
+import {
+  restoreSignupAfterPersonalityQuiz,
+} from '../../utils/signupQuizHandoff';
 
 const QUERY_KEYS = ['connection', 'think', 'cs', 'ts', 'origin'];
 
 /**
  * URL의 이향인 결과 파라미터를 동기적으로 수신합니다.
- * PublicRoute의 /home 리다이렉트보다 먼저 실행되어야 합니다.
- * @returns {boolean} 회원가입 draft로 이동해야 하면 true
+ * @returns {boolean} 회원가입(성향 결과) 화면으로 이동해야 하면 true
  */
 export function consumePersonalityParamsFromWindow() {
   if (typeof window === 'undefined') {
@@ -35,24 +38,31 @@ export function consumePersonalityParamsFromWindow() {
 
   savePendingPersonalityResult(parsed);
   applyPendingPersonalityToStoredUser();
+  saveSignupProfileDraft({
+    personalityResult: parsed.personalityResult,
+    personalityHeadline: parsed.personalityHeadline,
+  });
 
   QUERY_KEYS.forEach((key) => url.searchParams.delete(key));
-  const next = `${url.pathname}${url.search}${url.hash}`;
-  window.history.replaceState({}, '', next);
+  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
 
-  const shouldSignup = Boolean(getSignupDraft()?.signupToken);
-  window.__personalityRedirectSignup = shouldSignup;
-  return shouldSignup;
+  const restored = restoreSignupAfterPersonalityQuiz();
+  const hasDraft = Boolean(getSignupDraft()?.signupToken) || restored;
+
+  // 테스트 결과가 있으면 항상 가입 성향 결과 화면으로 이어갑니다.
+  window.__personalityRedirectSignup = true;
+  window.__personalityReturnPath = '/signup';
+  window.__personalitySignupRestored = hasDraft;
+
+  return true;
 }
 
 /**
- * URL의 이향인 결과 파라미터를 수신해 localStorage에 저장합니다.
+ * URL의 이향인 결과 파라미터를 수신해 가입 성향 결과 화면으로 이어갑니다.
  */
 export default function PersonalityResultIngest() {
   const navigate = useNavigate();
   const handledRef = useRef(false);
-
-  // 첫 렌더에서 동기 소비 (라우트 Navigate보다 우선)
   const shouldSignup = consumePersonalityParamsFromWindow();
 
   useEffect(() => {
@@ -62,7 +72,7 @@ export default function PersonalityResultIngest() {
     handledRef.current = true;
 
     if (shouldSignup) {
-      navigate('/signup', { replace: true });
+      navigate(window.__personalityReturnPath || '/signup', { replace: true });
     }
   }, [navigate, shouldSignup]);
 

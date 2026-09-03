@@ -19,6 +19,9 @@ export default function LoginPage() {
   }, []);
 
   const handleGuestBrowse = () => {
+    // 이전 로그인 잔여값이 있어도 게스트로 진입
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     sessionStorage.setItem('guest', 'true');
     navigate('/home');
   };

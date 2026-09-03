@@ -40,6 +40,10 @@ import {
   getPendingPersonalityResult,
   openPersonalityQuiz,
 } from '../utils/personalityTestBridge';
+import {
+  clearSignupQuizHandoff,
+  stashSignupBeforePersonalityQuiz,
+} from '../utils/signupQuizHandoff';
 import './SignupPage.css';
 
 const SIGNUP_PROGRESS_INDEX = {
@@ -179,7 +183,10 @@ export default function SignupPage() {
       ...(profileDraft.birthDate ? { birthDate: String(profileDraft.birthDate) } : {}),
     };
   });
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(() => {
+    // steps는 아래에서 계산되므로 pending이 있으면 나중에 보정
+    return 0;
+  });
   const [personalityResult, setPersonalityResult] = useState(() => {
     const pending = getPendingPersonalityResult();
     if (pending?.personalityResult) {
@@ -197,7 +204,7 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!draft?.signupToken) {
+    if (!draft?.signupToken && !getPendingPersonalityResult()) {
       navigate('/', { replace: true });
     }
   }, [draft, navigate]);
@@ -215,12 +222,10 @@ export default function SignupPage() {
     });
 
     const resultStepIndex = steps.findIndex((step) => step.id === 'personality-result');
-    const introStepIndex = steps.findIndex((step) => step.id === 'personality-intro');
-
-    if (resultStepIndex >= 0 && introStepIndex >= 0 && currentStep <= introStepIndex) {
+    if (resultStepIndex >= 0) {
       setCurrentStep(resultStepIndex);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only hydrate once when steps resolve
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once when steps ready
   }, [steps]);
 
   useEffect(() => {
@@ -248,7 +253,11 @@ export default function SignupPage() {
     };
   }, [profileImagePreview]);
 
-  if (!draft?.signupToken || steps.length === 0) {
+  if (steps.length === 0) {
+    return null;
+  }
+
+  if (!draft?.signupToken && !personalityResult) {
     return null;
   }
 
@@ -368,6 +377,7 @@ export default function SignupPage() {
         saveAuthSession(data, profilePatch);
         clearPendingPersonalityResult();
         clearSignupProfileDraft();
+        clearSignupQuizHandoff();
 
         navigate('/home', { replace: true });
         return;
@@ -399,6 +409,7 @@ export default function SignupPage() {
 
     if (isPersonalityIntro) {
       if (!personalityResult) {
+        stashSignupBeforePersonalityQuiz();
         openPersonalityQuiz();
         return;
       }
@@ -415,11 +426,18 @@ export default function SignupPage() {
     }
 
     if (isPersonalityResult && !personalityResult) {
+      stashSignupBeforePersonalityQuiz();
       openPersonalityQuiz();
       return;
     }
 
     if (!isLastStep) {
+      if (isPersonalityResult && !draft?.signupToken) {
+        setError('카카오 로그인 후 가입을 이어서 완료해 주세요.');
+        navigate('/', { replace: true });
+        return;
+      }
+
       setCurrentStep((prev) => prev + 1);
       setError('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -500,6 +518,7 @@ export default function SignupPage() {
 
   const handleRetryTest = () => {
     setPersonalityResult(null);
+    stashSignupBeforePersonalityQuiz();
     openPersonalityQuiz();
   };
 
