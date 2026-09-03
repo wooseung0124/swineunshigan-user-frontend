@@ -4,8 +4,9 @@ import PersonalityResultCards from '../components/personality/PersonalityResultC
 import backIcon from '../assets/icons/mypage-back.png';
 import {
   getUserPersonalityResult,
-  retakePersonalityTest,
+  openPersonalityRetake,
 } from '../utils/personalityResult';
+import { getPersonalityTestGateUrl } from '../utils/personalityTestBridge';
 import { getUserProfile } from '../utils/userProfile';
 import './PersonalityResultPage.css';
 
@@ -25,14 +26,14 @@ function CloseIcon() {
 export default function PersonalityResultPage() {
   const navigate = useNavigate();
   const profile = useMemo(() => getUserProfile(), []);
-  const [result, setResult] = useState(() => getUserPersonalityResult());
+  const [result] = useState(() => getUserPersonalityResult());
 
   const handleClose = () => {
     navigate('/mypage/profile');
   };
 
   const handleRetake = () => {
-    setResult(retakePersonalityTest());
+    openPersonalityRetake();
   };
 
   if (!result) {
@@ -61,6 +62,15 @@ export default function PersonalityResultPage() {
         <p className="personality-result-page__empty">
           아직 성향 테스트 결과가 없습니다.
         </p>
+        <button
+          type="button"
+          className="personality-result-page__retake"
+          onClick={() => {
+            window.location.assign(getPersonalityTestGateUrl());
+          }}
+        >
+          성향 테스트하기
+        </button>
       </div>
     );
   }

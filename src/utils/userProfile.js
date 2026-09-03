@@ -633,6 +633,14 @@ export function formatBirthDateDisplay(value) {
 }
 
 /**
+ * 게스트 둘러보기 상태인지 확인합니다.
+ * @returns {boolean}
+ */
+export function isGuestUser() {
+  return sessionStorage.getItem('guest') === 'true';
+}
+
+/**
  * @returns {{
  *   name: string,
  *   email: string,
@@ -646,16 +654,17 @@ export function formatBirthDateDisplay(value) {
  */
 export function getUserProfile() {
   const user = getMergedStoredUser();
+  const guest = isGuestUser();
 
   return {
-    name: String(user.name || user.nickname || '회원'),
-    email: String(user.email || '-'),
-    gender: formatGenderLabel(user.gender),
-    genderValue: String(user.gender || ''),
-    birthDate: formatBirthDateDisplay(user.birthDate),
-    bio: String(user.bio || ''),
-    profileImageUrl: String(user.profileImageUrl || ''),
-    personalityHeadline: String(user.personalityHeadline || ''),
+    name: guest ? '게스트' : String(user.name || user.nickname || '회원'),
+    email: guest ? '-' : String(user.email || '-'),
+    gender: guest ? '-' : formatGenderLabel(user.gender),
+    genderValue: guest ? '' : String(user.gender || ''),
+    birthDate: guest ? '-' : formatBirthDateDisplay(user.birthDate),
+    bio: guest ? '' : String(user.bio || ''),
+    profileImageUrl: guest ? '' : String(user.profileImageUrl || ''),
+    personalityHeadline: guest ? '' : String(user.personalityHeadline || ''),
   };
 }
 

@@ -22,7 +22,6 @@ import {
   resolveSignupSteps,
   SIGNUP_TOTAL_STEPS,
 } from '../utils/signupFields';
-import { pickRandomPersonalityResult } from '../data/personalityTypes';
 import SignupPersonalityIntro from './SignupPersonalityIntro';
 import SignupPersonalityResult from './SignupPersonalityResult';
 import SignupProfileIntro from './SignupProfileIntro';
@@ -35,6 +34,16 @@ import {
   saveSignupProfileDraftFromForm,
   clearSignupProfileDraft,
 } from '../utils/signupProfileDraft';
+import {
+  buildSignupPersonalityPayload,
+  clearPendingPersonalityResult,
+  getPendingPersonalityResult,
+  openPersonalityQuiz,
+} from '../utils/personalityTestBridge';
+import {
+  clearSignupQuizHandoff,
+  stashSignupBeforePersonalityQuiz,
+} from '../utils/signupQuizHandoff';
 import './SignupPage.css';
 
 const SIGNUP_PROGRESS_INDEX = {
@@ -135,13 +144,13 @@ function SignupField({ field, value, onChange }) {
   );
 }
 
-function getSubmitLabel(activeStep, isLastStep, isSubmitting) {
+function getSubmitLabel(activeStep, isLastStep, isSubmitting, hasPersonalityResult) {
   if (isSubmitting) {
     return '가입 처리 중...';
   }
 
   if (activeStep.type === 'personality-intro') {
-    return '테스트 시작하기';
+    return hasPersonalityResult ? '결과 확인하기' : '테스트 시작하기';
   }
 
   if (isLastStep) {
@@ -174,8 +183,19 @@ export default function SignupPage() {
       ...(profileDraft.birthDate ? { birthDate: String(profileDraft.birthDate) } : {}),
     };
   });
-  const [currentStep, setCurrentStep] = useState(0);
-  const [personalityResult, setPersonalityResult] = useState(null);
+  const [currentStep, setCurrentStep] = useState(() => {
+    // steps는 아래에서 계산되므로 pending이 있으면 나중에 보정
+    return 0;
+  });
+  const [personalityResult, setPersonalityResult] = useState(() => {
+    const pending = getPendingPersonalityResult();
+    if (pending?.personalityResult) {
+      return pending.personalityResult;
+    }
+
+    const profileDraft = getSignupProfileDraft();
+    return profileDraft.personalityResult || null;
+  });
   const [introMode, setIntroMode] = useState('direct');
   const [directBioDraft, setDirectBioDraft] = useState('');
   const [profileImagePreview, setProfileImagePreview] = useState('');
@@ -184,10 +204,29 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!draft?.signupToken) {
+    if (!draft?.signupToken && !getPendingPersonalityResult()) {
       navigate('/', { replace: true });
     }
   }, [draft, navigate]);
+
+  useEffect(() => {
+    const pending = getPendingPersonalityResult();
+    if (!pending?.personalityResult) {
+      return;
+    }
+
+    setPersonalityResult(pending.personalityResult);
+    saveSignupProfileDraft({
+      personalityResult: pending.personalityResult,
+      personalityHeadline: pending.personalityHeadline,
+    });
+
+    const resultStepIndex = steps.findIndex((step) => step.id === 'personality-result');
+    if (resultStepIndex >= 0) {
+      setCurrentStep(resultStepIndex);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once when steps ready
+  }, [steps]);
 
   useEffect(() => {
     setFormValues((prev) => {
@@ -214,7 +253,11 @@ export default function SignupPage() {
     };
   }, [profileImagePreview]);
 
-  if (!draft?.signupToken || steps.length === 0) {
+  if (steps.length === 0) {
+    return null;
+  }
+
+  if (!draft?.signupToken && !personalityResult) {
     return null;
   }
 
@@ -275,6 +318,7 @@ export default function SignupPage() {
         profileImageUrl = await readProfileImageAsDataUrl(profileImageFile);
       }
 
+      const pendingPersonality = getPendingPersonalityResult();
       const payload = {
         signupToken: currentDraft.signupToken,
         ...buildSignupPayload(formValues, formFields, currentDraft.socialUser),
@@ -283,6 +327,7 @@ export default function SignupPage() {
         birthDate: birthDateToApi(formValues.birthDate) || formValues.birthDate,
         email: formValues.email?.trim(),
         bio: formValues.bio?.trim() || undefined,
+        ...buildSignupPersonalityPayload(pendingPersonality, personalityResult),
         ...(profileImageUrl ? { profileImageUrl } : {}),
       };
 
@@ -330,6 +375,9 @@ export default function SignupPage() {
 
         saveSignupProfileDraft(profilePatch);
         saveAuthSession(data, profilePatch);
+        clearPendingPersonalityResult();
+        clearSignupProfileDraft();
+        clearSignupQuizHandoff();
 
         navigate('/home', { replace: true });
         return;
@@ -360,11 +408,15 @@ export default function SignupPage() {
     }
 
     if (isPersonalityIntro) {
-      const result = pickRandomPersonalityResult();
-      setPersonalityResult(result);
+      if (!personalityResult) {
+        stashSignupBeforePersonalityQuiz();
+        openPersonalityQuiz();
+        return;
+      }
+
       saveSignupProfileDraft({
-        personalityResult: result,
-        personalityHeadline: result.headline,
+        personalityResult,
+        personalityHeadline: personalityResult.headline,
       });
       const resultStepIndex = steps.findIndex((step) => step.id === 'personality-result');
       setCurrentStep(resultStepIndex >= 0 ? resultStepIndex : currentStep + 1);
@@ -373,7 +425,19 @@ export default function SignupPage() {
       return;
     }
 
+    if (isPersonalityResult && !personalityResult) {
+      stashSignupBeforePersonalityQuiz();
+      openPersonalityQuiz();
+      return;
+    }
+
     if (!isLastStep) {
+      if (isPersonalityResult && !draft?.signupToken) {
+        setError('카카오 로그인 후 가입을 이어서 완료해 주세요.');
+        navigate('/', { replace: true });
+        return;
+      }
+
       setCurrentStep((prev) => prev + 1);
       setError('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -454,9 +518,8 @@ export default function SignupPage() {
 
   const handleRetryTest = () => {
     setPersonalityResult(null);
-    setCurrentStep(1);
-    setError('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    stashSignupBeforePersonalityQuiz();
+    openPersonalityQuiz();
   };
 
   return (
@@ -528,7 +591,7 @@ export default function SignupPage() {
           disabled={!canProceed || isSubmitting}
           onClick={handleNext}
         >
-          {getSubmitLabel(activeStep, isLastStep, isSubmitting)}
+          {getSubmitLabel(activeStep, isLastStep, isSubmitting, Boolean(personalityResult))}
         </button>
         {isPersonalityResult && (
           <button

@@ -127,6 +127,12 @@
   cursor: pointer;
 }
 
+.profile-page__personality-badge--empty {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-200);
+}
+
 .profile-page__section {
   flex-shrink: 0;
   padding: 0 var(--space-5) var(--space-8);

@@ -1,7 +1,6 @@
 import {
   CONNECTION_TYPES,
   THINKING_TYPES,
-  pickRandomPersonalityResult,
 } from '../data/personalityTypes';
 import { getStoredUser, updateStoredUser } from './userProfile';
 
@@ -70,10 +69,8 @@ export function saveUserPersonalityResult(result) {
 }
 
 /**
- * @returns {ReturnType<typeof pickRandomPersonalityResult>}
+ * 외부 성향 테스트 재진행 URL로 이동합니다.
  */
-export function retakePersonalityTest() {
-  const result = pickRandomPersonalityResult();
-  saveUserPersonalityResult(result);
-  return result;
+export function openPersonalityRetake() {
+  window.location.assign('/test');
 }

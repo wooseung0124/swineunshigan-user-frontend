@@ -5,7 +5,7 @@ import backIcon from '../assets/icons/mypage-back.png';
 import notifyIcon from '../assets/icons/mypage-notify.png';
 import profileDefaultIcon from '../assets/icons/signup-profile-default.png';
 import { clearClientAuthState } from '../utils/authSession';
-import { getUserProfile, syncUserFromServer } from '../utils/userProfile';
+import { getUserProfile, isGuestUser, syncUserFromServer } from '../utils/userProfile';
 import './MyPage.css';
 
 const MENU_ITEMS = [
@@ -40,8 +40,8 @@ export default function MyPage() {
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [profile, setProfile] = useState(() => getUserProfile());
-  const isGuest = sessionStorage.getItem('guest') === 'true';
-  const displayName = isGuest ? '게스트' : profile.name;
+  const isGuest = isGuestUser();
+  const displayName = profile.name;
   const avatarSrc = profile.profileImageUrl || profileDefaultIcon;
 
   useEffect(() => {

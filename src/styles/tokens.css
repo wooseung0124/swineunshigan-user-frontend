@@ -86,7 +86,7 @@
   --home-horizontal-inset: var(--space-4);
   --header-height: 52px;
   --bottom-nav-height: 64px;
-  --bottom-nav-bottom-offset: 60px;
+  --bottom-nav-bottom-offset: 0px;
   --bottom-nav-shell-height: calc(
     var(--bottom-nav-bottom-offset) + var(--bottom-nav-height) + var(--safe-area-bottom)
   );
@@ -115,7 +115,7 @@
     --home-controls-top: 16px;
     --home-search-categories-gap: 10px;
     --bottom-nav-height: 56px;
-    --bottom-nav-bottom-offset: 12px;
+    --bottom-nav-bottom-offset: 0px;
     --map-locate-above-nav: 12px;
     --map-controls-gap: 8px;
   }
