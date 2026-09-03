@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiUrl, getApiBaseUrl } from '../utils/api';
 import {
+  clearClientAuthState,
+  isAuthSuccess,
   parseAuthResponse,
-  resolveAuthFlow,
   saveAuthSession,
   saveSignupDraft,
 } from '../utils/authSession';
@@ -41,8 +42,7 @@ export default function KakaoCallback() {
       }
 
       try {
-        const loginUrl = apiUrl('/api/v1/auth/kakao/login');
-        const response = await fetch(loginUrl, {
+        const response = await fetch(apiUrl('/api/v1/auth/kakao/login'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code, state }),
@@ -55,9 +55,7 @@ export default function KakaoCallback() {
           const message =
             data?.message ||
             auth?.message ||
-            (response.status === 404
-              ? `백엔드 API를 찾을 수 없습니다(404).\n요청 URL: ${loginUrl}\n배포 환경에 VITE_API_BASE_URL이 설정됐는지 확인해 주세요.`
-              : response.status === 403
+            (response.status === 403
               ? '백엔드에서 접근이 거부되었습니다(403).'
               : `서버 오류 (${response.status}). 백엔드 API가 실행 중인지 확인해 주세요.`);
           throw new Error(message);
@@ -67,20 +65,18 @@ export default function KakaoCallback() {
           throw new Error('로그인 응답 형식이 올바르지 않습니다.');
         }
 
-        const flow = resolveAuthFlow(data);
-
-        if (flow === 'login') {
-          saveAuthSession(data);
-          await syncUserFromServer();
-          navigate('/home', { replace: true });
-          return;
-        }
-
-        if (flow === 'signup') {
-          if (!saveSignupDraft(data)) {
+        if (auth.authStatus === 'ADDITIONAL_INFO_REQUIRED') {
+          if (!saveSignupDraft(auth)) {
             throw new Error('회원가입 토큰을 받지 못했습니다. 다시 로그인해 주세요.');
           }
           navigate('/signup', { replace: true });
+          return;
+        }
+
+        if (isAuthSuccess(auth)) {
+          saveAuthSession(auth);
+          await syncUserFromServer();
+          navigate('/home', { replace: true });
           return;
         }
 

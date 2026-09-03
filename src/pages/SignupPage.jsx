@@ -22,7 +22,6 @@ import {
   resolveSignupSteps,
   SIGNUP_TOTAL_STEPS,
 } from '../utils/signupFields';
-import { pickRandomPersonalityResult } from '../data/personalityTypes';
 import SignupPersonalityIntro from './SignupPersonalityIntro';
 import SignupPersonalityResult from './SignupPersonalityResult';
 import SignupProfileIntro from './SignupProfileIntro';
@@ -35,6 +34,12 @@ import {
   saveSignupProfileDraftFromForm,
   clearSignupProfileDraft,
 } from '../utils/signupProfileDraft';
+import {
+  buildSignupPersonalityPayload,
+  clearPendingPersonalityResult,
+  getPendingPersonalityResult,
+  openPersonalityQuiz,
+} from '../utils/personalityTestBridge';
 import './SignupPage.css';
 
 const SIGNUP_PROGRESS_INDEX = {
@@ -135,13 +140,13 @@ function SignupField({ field, value, onChange }) {
   );
 }
 
-function getSubmitLabel(activeStep, isLastStep, isSubmitting) {
+function getSubmitLabel(activeStep, isLastStep, isSubmitting, hasPersonalityResult) {
   if (isSubmitting) {
     return '가입 처리 중...';
   }
 
   if (activeStep.type === 'personality-intro') {
-    return '테스트 시작하기';
+    return hasPersonalityResult ? '결과 확인하기' : '테스트 시작하기';
   }
 
   if (isLastStep) {
@@ -175,7 +180,15 @@ export default function SignupPage() {
     };
   });
   const [currentStep, setCurrentStep] = useState(0);
-  const [personalityResult, setPersonalityResult] = useState(null);
+  const [personalityResult, setPersonalityResult] = useState(() => {
+    const pending = getPendingPersonalityResult();
+    if (pending?.personalityResult) {
+      return pending.personalityResult;
+    }
+
+    const profileDraft = getSignupProfileDraft();
+    return profileDraft.personalityResult || null;
+  });
   const [introMode, setIntroMode] = useState('direct');
   const [directBioDraft, setDirectBioDraft] = useState('');
   const [profileImagePreview, setProfileImagePreview] = useState('');
@@ -188,6 +201,27 @@ export default function SignupPage() {
       navigate('/', { replace: true });
     }
   }, [draft, navigate]);
+
+  useEffect(() => {
+    const pending = getPendingPersonalityResult();
+    if (!pending?.personalityResult) {
+      return;
+    }
+
+    setPersonalityResult(pending.personalityResult);
+    saveSignupProfileDraft({
+      personalityResult: pending.personalityResult,
+      personalityHeadline: pending.personalityHeadline,
+    });
+
+    const resultStepIndex = steps.findIndex((step) => step.id === 'personality-result');
+    const introStepIndex = steps.findIndex((step) => step.id === 'personality-intro');
+
+    if (resultStepIndex >= 0 && introStepIndex >= 0 && currentStep <= introStepIndex) {
+      setCurrentStep(resultStepIndex);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only hydrate once when steps resolve
+  }, [steps]);
 
   useEffect(() => {
     setFormValues((prev) => {
@@ -275,6 +309,7 @@ export default function SignupPage() {
         profileImageUrl = await readProfileImageAsDataUrl(profileImageFile);
       }
 
+      const pendingPersonality = getPendingPersonalityResult();
       const payload = {
         signupToken: currentDraft.signupToken,
         ...buildSignupPayload(formValues, formFields, currentDraft.socialUser),
@@ -283,6 +318,7 @@ export default function SignupPage() {
         birthDate: birthDateToApi(formValues.birthDate) || formValues.birthDate,
         email: formValues.email?.trim(),
         bio: formValues.bio?.trim() || undefined,
+        ...buildSignupPersonalityPayload(pendingPersonality, personalityResult),
         ...(profileImageUrl ? { profileImageUrl } : {}),
       };
 
@@ -330,6 +366,8 @@ export default function SignupPage() {
 
         saveSignupProfileDraft(profilePatch);
         saveAuthSession(data, profilePatch);
+        clearPendingPersonalityResult();
+        clearSignupProfileDraft();
 
         navigate('/home', { replace: true });
         return;
@@ -360,16 +398,24 @@ export default function SignupPage() {
     }
 
     if (isPersonalityIntro) {
-      const result = pickRandomPersonalityResult();
-      setPersonalityResult(result);
+      if (!personalityResult) {
+        openPersonalityQuiz();
+        return;
+      }
+
       saveSignupProfileDraft({
-        personalityResult: result,
-        personalityHeadline: result.headline,
+        personalityResult,
+        personalityHeadline: personalityResult.headline,
       });
       const resultStepIndex = steps.findIndex((step) => step.id === 'personality-result');
       setCurrentStep(resultStepIndex >= 0 ? resultStepIndex : currentStep + 1);
       setError('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (isPersonalityResult && !personalityResult) {
+      openPersonalityQuiz();
       return;
     }
 
@@ -454,9 +500,7 @@ export default function SignupPage() {
 
   const handleRetryTest = () => {
     setPersonalityResult(null);
-    setCurrentStep(1);
-    setError('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    openPersonalityQuiz();
   };
 
   return (
@@ -528,7 +572,7 @@ export default function SignupPage() {
           disabled={!canProceed || isSubmitting}
           onClick={handleNext}
         >
-          {getSubmitLabel(activeStep, isLastStep, isSubmitting)}
+          {getSubmitLabel(activeStep, isLastStep, isSubmitting, Boolean(personalityResult))}
         </button>
         {isPersonalityResult && (
           <button

@@ -126,13 +126,23 @@ export default function ProfilePage() {
         </div>
         <p className="profile-page__name">{profile.name}</p>
 
-        {profile.personalityHeadline && (
+        {profile.personalityHeadline ? (
           <button
             type="button"
             className="profile-page__personality-badge"
             onClick={() => navigate('/mypage/profile/personality')}
           >
             {profile.personalityHeadline}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="profile-page__personality-badge profile-page__personality-badge--empty"
+            onClick={() => {
+              window.location.assign('/test');
+            }}
+          >
+            성향 테스트하기
           </button>
         )}
       </section>

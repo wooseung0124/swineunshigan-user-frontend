@@ -7,24 +7,25 @@ import Layout from '../components/common/Layout';
 import CreateRoom from '../pages/CreateRoom';
 import MyPage from '../pages/MyPage';
 import ProfilePage from '../pages/ProfilePage';
+import PersonalityResultPage from '../pages/PersonalityResultPage';
+import PersonalityTestGatePage from '../pages/PersonalityTestGatePage';
+import EditNamePage from '../pages/EditNamePage';
+import EditGenderPage from '../pages/EditGenderPage';
 import SignupPage from '../pages/SignupPage';
+import PersonalityResultIngest from '../components/personality/PersonalityResultIngest';
 import { getSignupDraft } from '../utils/authSession';
 
-// 로그인 여부 확인
 const isLoggedIn = () => !!localStorage.getItem('token');
 const isGuest = () => sessionStorage.getItem('guest') === 'true';
 
-// 로그인 안 되어 있으면 로그인 페이지로
 function PrivateRoute({ children }) {
   return isLoggedIn() || isGuest() ? children : <Navigate to="/" />;
 }
 
-// 이미 로그인 되어 있으면 홈으로
 function PublicRoute({ children }) {
   return isLoggedIn() ? <Navigate to="/home" /> : children;
 }
 
-// 회원가입 draft가 있을 때만 접근
 function SignupRoute({ children }) {
   const draft = getSignupDraft();
 
@@ -38,18 +39,32 @@ function SignupRoute({ children }) {
 export default function Router() {
   return (
     <BrowserRouter>
+      <PersonalityResultIngest />
       <Routes>
         <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/auth/naver/callback" element={<NaverCallback />} />
         <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
         <Route path="/signup" element={<SignupRoute><SignupPage /></SignupRoute>} />
+        <Route path="/test" element={<PersonalityTestGatePage />} />
         <Route path="/home" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
         <Route path="/schedule" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>일정</div></Layout></PrivateRoute>} />
         <Route path="/verify" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>인증하기</div></Layout></PrivateRoute>} />
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
         <Route path="/mypage/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />
+        <Route
+          path="/mypage/profile/personality"
+          element={<PrivateRoute><Layout><PersonalityResultPage /></Layout></PrivateRoute>}
+        />
+        <Route
+          path="/mypage/profile/edit-name"
+          element={<PrivateRoute><Layout><EditNamePage /></Layout></PrivateRoute>}
+        />
+        <Route
+          path="/mypage/profile/edit-gender"
+          element={<PrivateRoute><Layout><EditGenderPage /></Layout></PrivateRoute>}
+        />
       </Routes>
     </BrowserRouter>
   );

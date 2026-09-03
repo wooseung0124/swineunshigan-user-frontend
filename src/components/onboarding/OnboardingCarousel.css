@@ -1,0 +1,31 @@
+.onboarding-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.onboarding-carousel__body {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-b3-size);
+  font-weight: var(--text-b3-weight);
+  line-height: var(--text-b3-line-height);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.onboarding-carousel__dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.onboarding-carousel__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gray-300);
+}
+
+.onboarding-carousel__dot--active {
+  background: var(--color-primary-600);
+}

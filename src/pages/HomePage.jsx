@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import SlideUpPanel from '../components/common/SlideUpPanel';
+import OnboardingCarousel from '../components/onboarding/OnboardingCarousel';
 import { IconSearch } from '../components/common/NavIcons';
 import { useGoogleMap } from '../hooks/useGoogleMap';
 import searchBrandIcon from '../assets/search-brand-icon.png';
@@ -138,6 +139,7 @@ export default function HomePage() {
       </div>
 
       <SlideUpPanel place={selectedPlace} onClose={() => setSelectedPlace(null)} />
+      <OnboardingCarousel />
     </div>
   );
 }
