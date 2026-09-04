@@ -244,6 +244,24 @@
   display: flex;
   flex-direction: column;
   gap: var(--map-controls-gap);
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.home-page__map-controls > * {
+  pointer-events: auto;
+}
+
+.home-page__search-error,
+.home-page__loading {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(36, 36, 35, 0.85);
+  color: #fff;
+  font-size: var(--text-b4-size);
+  pointer-events: none;
+  width: fit-content;
 }
 
 @media (max-height: 520px) and (orientation: landscape) {

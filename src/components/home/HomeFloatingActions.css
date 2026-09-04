@@ -1,0 +1,101 @@
+.home-floating {
+  position: absolute;
+  right: max(var(--home-horizontal-inset), var(--safe-area-right));
+  bottom: calc(
+    var(--bottom-nav-bottom-offset) + var(--bottom-nav-height) +
+      var(--map-locate-above-nav) + 96px + var(--safe-area-bottom)
+  );
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.home-floating__fab {
+  width: var(--home-search-height);
+  height: var(--home-search-height);
+  border: none;
+  border-radius: 50%;
+  background: var(--color-secondary-500);
+  color: var(--color-gray-0);
+  font-size: 24px;
+  line-height: 1;
+  box-shadow: 0 2px 10px rgba(36, 36, 35, 0.18);
+  cursor: pointer;
+}
+
+.home-floating__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 148px;
+}
+
+.home-floating__menu-item {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--color-gray-0);
+  color: var(--color-text-primary);
+  font-size: var(--text-b3-size);
+  text-align: left;
+  box-shadow: 0 2px 10px rgba(36, 36, 35, 0.12);
+  cursor: pointer;
+}
+
+.home-floating__menu-item:disabled {
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+}
+
+.home-floating__dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: rgba(36, 36, 35, 0.4);
+}
+
+.home-floating__dialog-card {
+  width: min(100%, 320px);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-gray-0);
+  box-shadow: var(--shadow-lg);
+}
+
+.home-floating__dialog-card h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-t2-size);
+}
+
+.home-floating__dialog-card p {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-b3-size);
+}
+
+.home-floating__dialog-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.home-floating__dialog-actions button {
+  min-width: 72px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 10px;
+  background: var(--color-gray-0);
+  cursor: pointer;
+}
+
+.home-floating__dialog-confirm {
+  border-color: var(--color-secondary-500) !important;
+  background: var(--color-secondary-500) !important;
+  color: #fff !important;
+}

@@ -1,45 +1,212 @@
-import { useRef, useState } from 'react';
-import SlideUpPanel from '../components/common/SlideUpPanel';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  fetchAllPlaces,
+  searchPlacesByKeyword,
+} from '../api/places';
+import HomeFloatingActions from '../components/home/HomeFloatingActions';
+import PlaceListSheet from '../components/home/PlaceListSheet';
+import PermissionRequestSheet from '../components/home/PermissionRequestSheet';
 import OnboardingCarousel from '../components/onboarding/OnboardingCarousel';
+import SlideUpPanel from '../components/common/SlideUpPanel';
 import { IconSearch } from '../components/common/NavIcons';
 import { useGoogleMap } from '../hooks/useGoogleMap';
+import { filterWithinSeongsu, sortBySeongsuDistance } from '../utils/geo';
+import { toPanelPlaceFromDb } from '../utils/placeModel';
+import { createLogger } from '../utils/logger';
 import searchBrandIcon from '../assets/search-brand-icon.png';
 import './HomePage.css';
 
-const CATEGORY_OPTIONS = ['카페', '음식점', '문화시설', '레포츠'];
+const CATEGORY_OPTIONS = ['카페', '음식점', '문화시설', '레포츠', '기타'];
 const SEARCH_TIP_KEY = 'home_search_tip_dismissed';
+const LOCATION_PERMISSION_GUIDE_KEY = 'home_location_permission_guide_seen';
+const SEONGSU_RADIUS_M = 1000;
+const NO_MATCH_MESSAGE = '현재는 장소명만 검색이 가능합니다.';
+const log = createLogger('HomePage');
+
+/**
+ * 현재위치 권한 안내를 이미 본 사용자인지 확인합니다.
+ * @returns {boolean}
+ */
+function hasSeenLocationPermissionGuide() {
+  return localStorage.getItem(LOCATION_PERMISSION_GUIDE_KEY) === 'true';
+}
+
+/** 현재위치 권한 안내를 다시 보지 않도록 저장합니다. */
+function markLocationPermissionGuideSeen() {
+  localStorage.setItem(LOCATION_PERMISSION_GUIDE_KEY, 'true');
+}
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const mapRef = useRef(null);
+  const [allPlaces, setAllPlaces] = useState([]);
+  const [visiblePlaces, setVisiblePlaces] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedPlace, setSelectedPlace] = useState(null);
+  const [listOpen, setListOpen] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
+  const [openOnly, setOpenOnly] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [focusId, setFocusId] = useState(null);
   const [showSearchTip, setShowSearchTip] = useState(
     () => sessionStorage.getItem(SEARCH_TIP_KEY) !== 'true',
   );
 
-  const { mapError, searchPlaces, goToSeongsuStation } = useGoogleMap(
+  const handleMarkerSelect = useCallback((place) => {
+    setSelectedPlace(toPanelPlaceFromDb(place));
+    setFocusId(place.id);
+  }, []);
+
+  const handleMapClick = useCallback(() => {
+    setListOpen(false);
+  }, []);
+
+  const { mapReady, mapError, renderPlaces, fitPlaces, goToSeongsuStation } = useGoogleMap(
     mapRef,
-    setSelectedPlace,
+    handleMarkerSelect,
+    handleMapClick,
   );
 
-  const handleSearch = () => {
-    searchPlaces(searchKeyword);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        const places = await fetchAllPlaces();
+        if (cancelled) return;
+        const sorted = sortBySeongsuDistance(places);
+        setAllPlaces(sorted);
+        setVisiblePlaces(sorted);
+      } catch (error) {
+        log.error('initial places load failed', error);
+        if (!cancelled) setSearchError('장소 정보를 불러오지 못했습니다.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapReady) return;
+    renderPlaces(visiblePlaces, { focusId, showTooltip: Boolean(focusId) });
+  }, [mapReady, visiblePlaces, focusId, renderPlaces]);
+
+  const listTitle = useMemo(() => {
+    if (selectedCategory) return selectedCategory;
+    if (searchKeyword.trim()) return '검색 결과';
+    return '전체 장소';
+  }, [selectedCategory, searchKeyword]);
+
+  const applyDefaultView = () => {
+    setSelectedCategory(null);
+    setFocusId(null);
+    setSearchError('');
+    const sorted = sortBySeongsuDistance(allPlaces);
+    setVisiblePlaces(sorted);
+    setListOpen(false);
+    fitPlaces(sorted);
+  };
+
+  const handleSearch = async (rawKeyword = searchKeyword) => {
+    const keyword = String(rawKeyword || '').trim();
+    setSelectedCategory(null);
+    setSearchKeyword(keyword);
+    setSelectedPlace(null);
+
+    if (!keyword) {
+      applyDefaultView();
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const results = await searchPlacesByKeyword(keyword);
+      if (!results.length) {
+        setSearchError(NO_MATCH_MESSAGE);
+        setListOpen(false);
+        return;
+      }
+
+      const sorted = sortBySeongsuDistance(results);
+      setSearchError('');
+      setVisiblePlaces(sorted);
+      setListOpen(true);
+      setFocusId(sorted.length === 1 ? sorted[0].id : null);
+      fitPlaces(sorted);
+    } catch (error) {
+      log.error('search failed', error);
+      setSearchError(NO_MATCH_MESSAGE);
+      setListOpen(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCategorySelect = (category) => {
-    const nextCategory = selectedCategory === category ? null : category;
-    setSelectedCategory(nextCategory);
+    const next = selectedCategory === category ? null : category;
+    setSelectedCategory(next);
+    setSearchKeyword('');
+    setSearchError('');
+    setFocusId(null);
 
-    if (nextCategory) {
-      setSearchKeyword(nextCategory);
-      searchPlaces(nextCategory);
+    if (!next) {
+      applyDefaultView();
+      return;
     }
+
+    const filtered = sortBySeongsuDistance(
+      filterWithinSeongsu(
+        allPlaces.filter((place) => place.category === next),
+        SEONGSU_RADIUS_M,
+      ),
+    );
+    setVisiblePlaces(filtered);
+    setListOpen(true);
+    fitPlaces(filtered);
   };
 
   const dismissSearchTip = () => {
     setShowSearchTip(false);
     sessionStorage.setItem(SEARCH_TIP_KEY, 'true');
+  };
+
+  const handleAllowPermission = () => {
+    markLocationPermissionGuideSeen();
+    setPermissionOpen(false);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          log.info('location permission granted');
+          goToSeongsuStation();
+        },
+        (error) => {
+          log.warn('location permission denied', error);
+          goToSeongsuStation();
+        },
+        { timeout: 5000 },
+      );
+      return;
+    }
+    goToSeongsuStation();
+  };
+
+  const handleClosePermission = () => {
+    markLocationPermissionGuideSeen();
+    setPermissionOpen(false);
+  };
+
+  const handleLocateClick = () => {
+    if (hasSeenLocationPermissionGuide()) {
+      goToSeongsuStation();
+      return;
+    }
+    setPermissionOpen(true);
   };
 
   return (
@@ -70,8 +237,9 @@ export default function HomePage() {
               className="home-page__search-input"
               value={searchKeyword}
               onChange={(event) => setSearchKeyword(event.target.value)}
-              placeholder="가고싶은 장소를 입력해 주세요"
-              aria-label="가고싶은 장소를 입력해 주세요"
+              placeholder="가보고 싶은 장소명을 입력하세요."
+              aria-label="가보고 싶은 장소명을 입력하세요."
+              autoComplete="off"
             />
             <button type="submit" className="home-page__search-icon-btn" aria-label="검색">
               <IconSearch />
@@ -112,31 +280,54 @@ export default function HomePage() {
               </svg>
             </span>
             <p className="home-page__tip-text">어떤 장소를 찾고계신가요~?</p>
-            <button
-              type="button"
-              className="home-page__tip-close"
-              onClick={dismissSearchTip}
-              aria-label="안내 닫기"
-            >
+            <button type="button" className="home-page__tip-close" onClick={dismissSearchTip} aria-label="안내 닫기">
               ×
             </button>
           </div>
         )}
+
+        {searchError && (
+          <p className="home-page__search-error" role="status">
+            {searchError}
+          </p>
+        )}
+        {loading && <p className="home-page__loading">장소 불러오는 중…</p>}
       </div>
 
       <div className="home-page__map-controls">
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--zoom"
-          aria-label="지도 확대"
+          aria-label="확대"
         />
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--locate"
-          onClick={goToSeongsuStation}
-          aria-label="성수역으로 이동"
+          onClick={handleLocateClick}
+          aria-label="현재 위치"
         />
       </div>
+
+      <PermissionRequestSheet
+        open={permissionOpen}
+        onClose={handleClosePermission}
+        onAllow={handleAllowPermission}
+      />
+
+      <HomeFloatingActions onAfterPermission={goToSeongsuStation} />
+
+      <PlaceListSheet
+        places={visiblePlaces}
+        open={listOpen}
+        title={listTitle}
+        openOnly={openOnly}
+        onToggleOpenOnly={() => setOpenOnly((prev) => !prev)}
+        onClose={() => setListOpen(false)}
+        onSelect={(place) => {
+          setFocusId(place.id);
+          navigate(`/places/${place.id}`, { state: { place } });
+        }}
+      />
 
       <SlideUpPanel place={selectedPlace} onClose={() => setSelectedPlace(null)} />
       <OnboardingCarousel />
