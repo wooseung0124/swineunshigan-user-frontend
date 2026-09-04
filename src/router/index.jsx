@@ -3,6 +3,7 @@ import LoginPage from '../pages/LoginPage';
 import NaverCallback from '../pages/NaverCallback';
 import KakaoCallback from '../pages/KakaoCallback';
 import HomePage from '../pages/HomePage';
+import PlaceDetailPage from '../pages/PlaceDetailPage';
 import Layout from '../components/common/Layout';
 import CreateRoom from '../pages/CreateRoom';
 import MyPage from '../pages/MyPage';
@@ -53,8 +54,10 @@ export default function Router() {
         <Route path="/test" element={<PersonalityTestGatePage />} />
         <Route path="/personality-waiting" element={<PersonalityWaitingPage />} />
         <Route path="/home" element={<PrivateRoute><Layout><HomePage /></Layout></PrivateRoute>} />
+        <Route path="/places/:placeId" element={<PrivateRoute><Layout><PlaceDetailPage /></Layout></PrivateRoute>} />
         <Route path="/schedule" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>일정</div></Layout></PrivateRoute>} />
         <Route path="/verify" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>인증하기</div></Layout></PrivateRoute>} />
+        <Route path="/move-news" element={<PrivateRoute><Layout><div style={{padding:'24px'}}>멤버 이동소식</div></Layout></PrivateRoute>} />
         <Route path="/create-room" element={<PrivateRoute><CreateRoom /></PrivateRoute>} />
         <Route path="/mypage" element={<PrivateRoute><Layout><MyPage /></Layout></PrivateRoute>} />
         <Route path="/mypage/profile" element={<PrivateRoute><Layout><ProfilePage /></Layout></PrivateRoute>} />

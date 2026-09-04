@@ -1,18 +1,57 @@
-import { useEffect, useRef, useState } from 'react';
-import { DEFAULT_MAP_CENTER, loadGoogleMaps, SEONGSU_STATION, toPanelPlace } from '../utils/googleMaps';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { DEFAULT_MAP_CENTER, loadGoogleMaps, SEONGSU_STATION } from '../utils/googleMaps';
+import { formatDistance } from '../utils/geo';
 import { attachMarkerClusterer, createPlaceMarkerIcon } from '../utils/mapMarkers';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger('useGoogleMap');
 
 /**
+ * InfoWindow HTML용으로 문자열을 이스케이프합니다.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+/**
+ * @param {object} place
+ */
+function buildTooltipHtml(place) {
+  const distance = formatDistance(place.distanceMeters);
+  const distanceText = distance ? `성수역 ${distance}` : '';
+  return `
+    <div style="font-family:Pretendard,sans-serif;padding:4px 2px;min-width:140px;">
+      <div style="font-size:14px;font-weight:600;color:#242423;margin-bottom:4px;">${escapeHtml(place.name)}</div>
+      <div style="font-size:12px;color:#666;">${escapeHtml(place.openLabel || '')}</div>
+      <div style="font-size:12px;color:#666;margin-top:2px;">${escapeHtml(distanceText)}</div>
+    </div>
+  `;
+}
+
+/**
+ * 성수 지도 인스턴스·마커·툴팁을 관리합니다.
  * @param {React.RefObject<HTMLElement|null>} mapRef
- * @param {(place: ReturnType<typeof toPanelPlace>) => void} onPlaceSelect
+ * @param {(place: object) => void} onPlaceSelect
  */
 export function useGoogleMap(mapRef, onPlaceSelect) {
   const mapInstanceRef = useRef(null);
-  const placesServiceRef = useRef(null);
   const clustererRef = useRef(null);
   const markersRef = useRef([]);
+  const infoWindowRef = useRef(null);
+  const onPlaceSelectRef = useRef(onPlaceSelect);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState('');
+
+  useEffect(() => {
+    onPlaceSelectRef.current = onPlaceSelect;
+  }, [onPlaceSelect]);
 
   useEffect(() => {
     let resizeObserver;
@@ -20,9 +59,7 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
 
     loadGoogleMaps()
       .then((maps) => {
-        if (!mapRef.current || mapInstanceRef.current) {
-          return;
-        }
+        if (!mapRef.current || mapInstanceRef.current) return;
 
         const mapInstance = new maps.Map(mapRef.current, {
           center: DEFAULT_MAP_CENTER,
@@ -35,9 +72,10 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
         });
 
         mapInstanceRef.current = mapInstance;
-        placesServiceRef.current = new maps.places.PlacesService(mapInstance);
+        infoWindowRef.current = new maps.InfoWindow();
         setMapReady(true);
         setMapError('');
+        log.info('map ready');
 
         relayoutMap = () => {
           maps.event.trigger(mapInstance, 'resize');
@@ -49,6 +87,7 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
         resizeObserver.observe(mapRef.current);
       })
       .catch((error) => {
+        log.error('map load failed', error);
         if (error.message === 'MISSING_API_KEY') {
           setMapError('Google Maps API 키가 설정되지 않았습니다.');
           return;
@@ -57,100 +96,117 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
       });
 
     return () => {
-      if (relayoutMap) {
-        window.removeEventListener('resize', relayoutMap);
-      }
+      if (relayoutMap) window.removeEventListener('resize', relayoutMap);
       resizeObserver?.disconnect();
       clustererRef.current?.clearMarkers();
       clustererRef.current = null;
+      infoWindowRef.current?.close();
     };
   }, [mapRef]);
 
-  const clearMarkers = () => {
+  const clearMarkers = useCallback(() => {
     clustererRef.current?.clearMarkers();
     clustererRef.current = null;
     markersRef.current = [];
-  };
+  }, []);
 
-  const renderMarkers = (places) => {
-    const map = mapInstanceRef.current;
-    const maps = window.google?.maps;
+  /**
+   * DB 장소 목록으로 핀을 그립니다.
+   * @param {Array<object>} places
+   * @param {{ focusId?: number|string|null, showTooltip?: boolean }} [options]
+   */
+  const renderPlaces = useCallback(
+    (places, options = {}) => {
+      const map = mapInstanceRef.current;
+      const maps = window.google?.maps;
+      if (!map || !maps) return;
 
-    if (!map || !maps) {
-      return;
-    }
+      clearMarkers();
+      infoWindowRef.current?.close();
 
-    clearMarkers();
+      const valid = places.filter(
+        (place) => Number.isFinite(place.lat) && Number.isFinite(place.lng),
+      );
 
-    markersRef.current = places
-      .filter((place) => place.geometry?.location)
-      .map((place) => {
+      markersRef.current = valid.map((place) => {
         const marker = new maps.Marker({
-          position: place.geometry.location,
+          position: { lat: place.lat, lng: place.lng },
           title: place.name,
           icon: createPlaceMarkerIcon(maps),
         });
 
         marker.addListener('click', () => {
-          onPlaceSelect(toPanelPlace(place));
+          infoWindowRef.current.setContent(buildTooltipHtml(place));
+          infoWindowRef.current.open({ map, anchor: marker });
+          onPlaceSelectRef.current?.(place);
         });
 
-        return marker;
+        return { marker, place };
       });
 
-    clustererRef.current = attachMarkerClusterer(map, markersRef.current, maps);
-  };
+      clustererRef.current = attachMarkerClusterer(
+        map,
+        markersRef.current.map((entry) => entry.marker),
+        maps,
+      );
 
-  const searchPlaces = (keyword) => {
-    const map = mapInstanceRef.current;
-    const placesService = placesServiceRef.current;
-    const maps = window.google?.maps;
-
-    if (!map || !placesService || !maps || !keyword.trim()) {
-      return;
-    }
-
-    placesService.textSearch(
-      {
-        query: keyword.trim(),
-        location: map.getCenter(),
-        radius: 5000,
-      },
-      (results, status) => {
-        if (status !== maps.places.PlacesServiceStatus.OK || !results?.length) {
-          return;
+      if (options.focusId != null && options.showTooltip !== false) {
+        const target = markersRef.current.find(
+          (entry) => String(entry.place.id) === String(options.focusId),
+        );
+        if (target) {
+          infoWindowRef.current.setContent(buildTooltipHtml(target.place));
+          infoWindowRef.current.open({ map, anchor: target.marker });
+          map.panTo(target.marker.getPosition());
+          map.setZoom(Math.max(map.getZoom() || 14, 16));
         }
+      }
+    },
+    [clearMarkers],
+  );
 
-        renderMarkers(results);
-
-        const bounds = new maps.LatLngBounds();
-        results.forEach((place) => {
-          if (place.geometry?.location) {
-            bounds.extend(place.geometry.location);
-          }
-        });
-
-        map.fitBounds(bounds);
-      },
-    );
-  };
-
-  const goToSeongsuStation = () => {
+  /**
+   * 여러 장소가 보이도록 bounds를 맞춥니다.
+   * @param {Array<{ lat: number, lng: number }>} places
+   */
+  const fitPlaces = useCallback((places) => {
     const map = mapInstanceRef.current;
     const maps = window.google?.maps;
+    if (!map || !maps) return;
 
-    if (!map || !maps) {
+    const valid = places.filter(
+      (place) => Number.isFinite(place.lat) && Number.isFinite(place.lng),
+    );
+    if (!valid.length) {
+      map.setCenter(SEONGSU_STATION);
+      map.setZoom(14);
       return;
     }
 
+    if (valid.length === 1) {
+      map.panTo({ lat: valid[0].lat, lng: valid[0].lng });
+      map.setZoom(16);
+      return;
+    }
+
+    const bounds = new maps.LatLngBounds();
+    valid.forEach((place) => bounds.extend({ lat: place.lat, lng: place.lng }));
+    map.fitBounds(bounds);
+  }, []);
+
+  /** 성수역 중심으로 지도를 재조정합니다. */
+  const goToSeongsuStation = useCallback(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
     map.setCenter(SEONGSU_STATION);
     map.setZoom(16);
-  };
+  }, []);
 
   return {
     mapReady,
     mapError,
-    searchPlaces,
+    renderPlaces,
+    fitPlaces,
     goToSeongsuStation,
   };
 }

@@ -1,4 +1,6 @@
-export const SEONGSU_STATION = { lat: 37.544581, lng: 127.055961 };
+import { SEONGSU_STATION } from './geo';
+
+export { SEONGSU_STATION };
 export const DEFAULT_MAP_CENTER = SEONGSU_STATION;
 
 let loadPromise = null;
