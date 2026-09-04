@@ -6,6 +6,7 @@ import {
 } from '../api/places';
 import HomeFloatingActions from '../components/home/HomeFloatingActions';
 import PlaceListSheet from '../components/home/PlaceListSheet';
+import PermissionRequestSheet from '../components/home/PermissionRequestSheet';
 import OnboardingCarousel from '../components/onboarding/OnboardingCarousel';
 import SlideUpPanel from '../components/common/SlideUpPanel';
 import { IconSearch } from '../components/common/NavIcons';
@@ -31,6 +32,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [listOpen, setListOpen] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
   const [openOnly, setOpenOnly] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -155,6 +157,25 @@ export default function HomePage() {
     sessionStorage.setItem(SEARCH_TIP_KEY, 'true');
   };
 
+  const handleAllowPermission = () => {
+    setPermissionOpen(false);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          log.info('location permission granted');
+          goToSeongsuStation();
+        },
+        (error) => {
+          log.warn('location permission denied', error);
+          goToSeongsuStation();
+        },
+        { timeout: 5000 },
+      );
+      return;
+    }
+    goToSeongsuStation();
+  };
+
   return (
     <div className="home-page">
       <div ref={mapRef} className="home-page__map" aria-label="지도" />
@@ -249,10 +270,16 @@ export default function HomePage() {
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--locate"
-          onClick={goToSeongsuStation}
-          aria-label="성수역으로 이동"
+          onClick={() => setPermissionOpen(true)}
+          aria-label="현재 위치"
         />
       </div>
+
+      <PermissionRequestSheet
+        open={permissionOpen}
+        onClose={() => setPermissionOpen(false)}
+        onAllow={handleAllowPermission}
+      />
 
       <HomeFloatingActions onAfterPermission={goToSeongsuStation} />
 
