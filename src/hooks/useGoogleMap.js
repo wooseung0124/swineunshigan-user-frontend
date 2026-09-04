@@ -3,6 +3,7 @@ import { DEFAULT_MAP_CENTER, loadGoogleMaps, SEONGSU_STATION } from '../utils/go
 import { formatDistance } from '../utils/geo';
 import { attachMarkerClusterer, createPlaceMarkerIcon } from '../utils/mapMarkers';
 import { createLogger } from '../utils/logger';
+import '../styles/mapInfoWindow.css';
 
 const log = createLogger('useGoogleMap');
 
@@ -25,12 +26,17 @@ function escapeHtml(value) {
  */
 function buildTooltipHtml(place) {
   const distance = formatDistance(place.distanceMeters);
-  const distanceText = distance ? `성수역 ${distance}` : '';
+  const openLabel = place.openLabel || '';
+  const metaParts = [openLabel, distance].filter(Boolean);
+  const meta = metaParts.join(' · ');
+
   return `
-    <div style="font-family:Pretendard,sans-serif;padding:4px 2px;min-width:140px;">
-      <div style="font-size:14px;font-weight:600;color:#242423;margin-bottom:4px;">${escapeHtml(place.name)}</div>
-      <div style="font-size:12px;color:#666;">${escapeHtml(place.openLabel || '')}</div>
-      <div style="font-size:12px;color:#666;margin-top:2px;">${escapeHtml(distanceText)}</div>
+    <div class="place-pin-tooltip">
+      <div class="place-pin-tooltip__card">
+        <p class="place-pin-tooltip__name">${escapeHtml(place.name)}</p>
+        <p class="place-pin-tooltip__meta">${escapeHtml(meta)}</p>
+      </div>
+      <span class="place-pin-tooltip__arrow" aria-hidden="true"></span>
     </div>
   `;
 }
@@ -80,7 +86,11 @@ export function useGoogleMap(mapRef, onPlaceSelect, onMapClick) {
         });
 
         mapInstanceRef.current = mapInstance;
-        infoWindowRef.current = new maps.InfoWindow();
+        infoWindowRef.current = new maps.InfoWindow({
+          headerDisabled: true,
+          maxWidth: 260,
+          pixelOffset: new maps.Size(0, -4),
+        });
         mapClickListener = mapInstance.addListener('click', () => {
           onMapClickRef.current?.();
         });
