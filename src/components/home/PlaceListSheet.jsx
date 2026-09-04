@@ -59,30 +59,20 @@ export default function PlaceListSheet({
   const sheetClass = entered
     ? 'place-list-sheet place-list-sheet--open'
     : 'place-list-sheet';
-  const backdropClass = entered
-    ? 'place-list-sheet__backdrop place-list-sheet__backdrop--open'
-    : 'place-list-sheet__backdrop';
 
   const toggleSort = () => {
     setSortMode((prev) => (prev === SORT_RELEVANCE ? SORT_DISTANCE : SORT_RELEVANCE));
   };
 
   return (
-    <>
-      <button
-        type="button"
-        className={backdropClass}
-        onClick={onClose}
-        aria-label="목록 닫기"
-      />
-      <section className={sheetClass} aria-label={title}>
-        <div className="place-list-sheet__header">
-          <button
-            type="button"
-            className="place-list-sheet__handle-btn"
-            onClick={onClose}
-            aria-label="목록 닫기"
-          >
+    <section className={sheetClass} aria-label={title}>
+      <div className="place-list-sheet__header">
+        <button
+          type="button"
+          className="place-list-sheet__handle-btn"
+          onClick={onClose}
+          aria-label="목록 닫기"
+        >
             <span className="place-list-sheet__handle" aria-hidden="true" />
           </button>
 
@@ -168,8 +158,7 @@ export default function PlaceListSheet({
               </li>
             );
           })}
-        </ul>
-      </section>
-    </>
+      </ul>
+    </section>
   );
 }

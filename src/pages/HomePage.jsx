@@ -19,9 +19,23 @@ import './HomePage.css';
 
 const CATEGORY_OPTIONS = ['카페', '음식점', '문화시설', '레포츠', '기타'];
 const SEARCH_TIP_KEY = 'home_search_tip_dismissed';
+const LOCATION_PERMISSION_GUIDE_KEY = 'home_location_permission_guide_seen';
 const SEONGSU_RADIUS_M = 1000;
 const NO_MATCH_MESSAGE = '현재는 장소명만 검색이 가능합니다.';
 const log = createLogger('HomePage');
+
+/**
+ * 현재위치 권한 안내를 이미 본 사용자인지 확인합니다.
+ * @returns {boolean}
+ */
+function hasSeenLocationPermissionGuide() {
+  return localStorage.getItem(LOCATION_PERMISSION_GUIDE_KEY) === 'true';
+}
+
+/** 현재위치 권한 안내를 다시 보지 않도록 저장합니다. */
+function markLocationPermissionGuideSeen() {
+  localStorage.setItem(LOCATION_PERMISSION_GUIDE_KEY, 'true');
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -46,9 +60,14 @@ export default function HomePage() {
     setFocusId(place.id);
   }, []);
 
+  const handleMapClick = useCallback(() => {
+    setListOpen(false);
+  }, []);
+
   const { mapReady, mapError, renderPlaces, fitPlaces, goToSeongsuStation } = useGoogleMap(
     mapRef,
     handleMarkerSelect,
+    handleMapClick,
   );
 
   useEffect(() => {
@@ -158,6 +177,7 @@ export default function HomePage() {
   };
 
   const handleAllowPermission = () => {
+    markLocationPermissionGuideSeen();
     setPermissionOpen(false);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -174,6 +194,19 @@ export default function HomePage() {
       return;
     }
     goToSeongsuStation();
+  };
+
+  const handleClosePermission = () => {
+    markLocationPermissionGuideSeen();
+    setPermissionOpen(false);
+  };
+
+  const handleLocateClick = () => {
+    if (hasSeenLocationPermissionGuide()) {
+      goToSeongsuStation();
+      return;
+    }
+    setPermissionOpen(true);
   };
 
   return (
@@ -270,14 +303,14 @@ export default function HomePage() {
         <button
           type="button"
           className="home-page__round-btn home-page__map-control-btn home-page__map-control-btn--locate"
-          onClick={() => setPermissionOpen(true)}
+          onClick={handleLocateClick}
           aria-label="현재 위치"
         />
       </div>
 
       <PermissionRequestSheet
         open={permissionOpen}
-        onClose={() => setPermissionOpen(false)}
+        onClose={handleClosePermission}
         onAllow={handleAllowPermission}
       />
 

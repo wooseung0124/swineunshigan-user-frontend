@@ -1,21 +1,3 @@
-.place-list-sheet__backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 19;
-  border: none;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.28s ease;
-}
-
-.place-list-sheet__backdrop--open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .place-list-sheet {
   position: absolute;
   right: 0;
@@ -31,6 +13,7 @@
   transform: translateY(100%);
   transition: transform 0.28s ease;
   will-change: transform;
+  pointer-events: auto;
 }
 
 .place-list-sheet--open {

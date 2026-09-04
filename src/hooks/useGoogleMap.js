@@ -39,13 +39,15 @@ function buildTooltipHtml(place) {
  * 성수 지도 인스턴스·마커·툴팁을 관리합니다.
  * @param {React.RefObject<HTMLElement|null>} mapRef
  * @param {(place: object) => void} onPlaceSelect
+ * @param {() => void} [onMapClick]
  */
-export function useGoogleMap(mapRef, onPlaceSelect) {
+export function useGoogleMap(mapRef, onPlaceSelect, onMapClick) {
   const mapInstanceRef = useRef(null);
   const clustererRef = useRef(null);
   const markersRef = useRef([]);
   const infoWindowRef = useRef(null);
   const onPlaceSelectRef = useRef(onPlaceSelect);
+  const onMapClickRef = useRef(onMapClick);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState('');
 
@@ -54,8 +56,13 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
   }, [onPlaceSelect]);
 
   useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
+
+  useEffect(() => {
     let resizeObserver;
     let relayoutMap;
+    let mapClickListener;
 
     loadGoogleMaps()
       .then((maps) => {
@@ -69,10 +76,14 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
+          gestureHandling: 'greedy',
         });
 
         mapInstanceRef.current = mapInstance;
         infoWindowRef.current = new maps.InfoWindow();
+        mapClickListener = mapInstance.addListener('click', () => {
+          onMapClickRef.current?.();
+        });
         setMapReady(true);
         setMapError('');
         log.info('map ready');
@@ -98,6 +109,7 @@ export function useGoogleMap(mapRef, onPlaceSelect) {
     return () => {
       if (relayoutMap) window.removeEventListener('resize', relayoutMap);
       resizeObserver?.disconnect();
+      mapClickListener?.remove();
       clustererRef.current?.clearMarkers();
       clustererRef.current = null;
       infoWindowRef.current?.close();
