@@ -9,11 +9,20 @@ const log = createLogger('places-api');
  * @param {Record<string, string|number|undefined|null>} [query]
  */
 function buildUrl(path, query = {}) {
-  const url = new URL(apiUrl(path), window.location.origin);
+  const resolved = apiUrl(path);
+  const url = resolved.startsWith('http')
+    ? new URL(resolved)
+    : new URL(resolved, window.location.origin);
+
   Object.entries(query).forEach(([key, value]) => {
     if (value === undefined || value === null || value === '') return;
     url.searchParams.set(key, String(value));
   });
+
+  // 개발(프록시): 상대경로 유지 / 운영: api.shineunsigan.com 절대 URL
+  if (resolved.startsWith('http')) {
+    return url.toString();
+  }
   return `${url.pathname}${url.search}`;
 }
 

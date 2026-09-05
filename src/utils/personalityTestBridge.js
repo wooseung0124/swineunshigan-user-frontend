@@ -164,7 +164,10 @@ export function buildSignupPersonalityPayload(pending, personalityResult) {
   };
 }
 
-/** 성향 테스트 퀴즈(랜딩) URL을 반환합니다. */
+/**
+ * 성향 테스트 랜딩(게이트) URL을 반환합니다.
+ * 인스타/웹 공용 랜딩은 shineunsigan.com/test.html 입니다. (quiz.html 직행 X)
+ */
 export function getPersonalityQuizUrl() {
   const full = import.meta.env.VITE_PERSONALITY_QUIZ_URL?.trim();
   if (full) return full;
@@ -172,15 +175,16 @@ export function getPersonalityQuizUrl() {
   const origin = (
     import.meta.env.VITE_PERSONALITY_LANDING_ORIGIN || 'https://shineunsigan.com'
   ).replace(/\/$/, '');
-  const path = import.meta.env.VITE_PERSONALITY_QUIZ_PATH || '/quiz.html';
+  const path = import.meta.env.VITE_PERSONALITY_QUIZ_PATH || '/test.html';
   return `${origin}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
 /**
- * 랜딩 퀴즈로 이동합니다.
- * - 랜딩 게이트: ?from=web | ?from=instagram
+ * 랜딩 테스트 게이트로 이동합니다.
+ * - 웹앱: https://shineunsigan.com/test.html?from=web
+ * - 인스타: https://shineunsigan.com/test.html?from=instagram
  * - 복귀 주소: ?app_base=현재 origin (랜딩이 지원하면 localhost로 복귀 가능)
- * - 로컬(DEV): 새 탭에서 퀴즈를 열고, 결과 URL을 이어받는 대기 화면으로 이동합니다.
+ * - 로컬(DEV): 결과 URL을 이어받는 대기 화면으로 이동합니다.
  */
 export function openPersonalityQuiz({ fromInstagram = false } = {}) {
   const url = new URL(getPersonalityQuizUrl());
